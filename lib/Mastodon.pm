@@ -6,26 +6,29 @@ use Moo;
 use Log::Any qw ( $log );
 
 use Types::Standard qw(
-  Bool Undef Str Num ArrayRef HashRef Dict slurpy
+  Bool Undef Str Maybe Num ArrayRef HashRef Dict slurpy
 );
-use Mastodon::Types qw( Client );
+use Types::Path::Tiny qw( Path File );
+use Mastodon::Types qw( App );
 use Type::Params qw( compile );
+use Path::Tiny qw( cwd path );
 
 with 'Mastodon::Role::UserAgent';
 
-has clients => (
+has apps => (
   is => 'ro',
-  isa => HashRef[Client],
+  isa => HashRef[App],
   init_arg => undef,
   lazy => 1,
   default => sub { {} },
 );
 
-sub create_client {
+sub create_app {
   my $self = shift;
 
   use Try::Tiny;
   require JSON;
+  use Encode qw( encode );
 
   state $check = compile( Str,
     slurpy Dict[
@@ -38,36 +41,71 @@ sub create_client {
       website => Str->plus_coercions(
         Undef, sub { '' }
       ),
-      to_file => Bool->plus_coercions(
-        Undef, sub { 0 }
+      to_file => Bool|Path->plus_coercions(
+        Str, sub { path($_) },
+        Undef, sub { 0 },
       ),
     ],
   );
-  my ($client_name, $opt) = $check->(@_);
+  my ($name, $opt) = $check->(@_);
 
   my $data = {
-    client_name   => $client_name,
+    client_name  => $name,
     redirect_uris => $opt->{redirect_uris},
-    scopes        => join ' ', @{$opt->{scopes}},
+    scopes       => join ' ', @{$opt->{scopes}},
   };
 
   my $response;
+  use DDP;
+  p $data;
   try {
     my $resp = $self->post('apps', data => $data );
     $resp->is_success or die $resp->status_line;
-    $response = JSON::decode_json $resp->content;
+    $response = JSON::decode_json( encode('utf8', $resp->decoded_content) );
   }
   catch {
     die 'Could not complete request: ', $_;
   };
 
-  require Mastodon::Client;
-  $self->clients->{$client_name} = Mastodon::Client->new(
-    id     => $response->{client_id},
-    secret => $response->{client_secret}
-  );
+  require Mastodon::App;
+  my $client = Mastodon::App->new({
+    name => $name,
+    %{$response}
+  });
+  $self->apps->{$name} = $client;
 
-  return $self->clients->{$client_name};
+  if (defined $opt->{to_file}) {
+    $client->save($opt->{to_file});
+  }
+
+  return $self->apps->{$name};
+}
+
+sub load_app {
+  my $self = shift;
+
+  state $check = compile(
+    File->plus_coercions( Str, sub { path( $_ ) } ),
+  );
+  my ($path) = $check->(@_);
+
+  use Config::Tiny;
+  my $config = Config::Tiny->read( $path );
+  require Mastodon::App;
+
+  my $name = $path->basename;
+  $name =~ s/\.ini$//;
+
+  my $client = Mastodon::App->new({
+    name => $name,
+    %{$config->{_}}
+  });
+
+  if (ref $self eq 'Mastodon') {
+    $self->apps->{$name} = $client;
+  }
+
+  return $client;
 }
 
 # Returns a stream listener

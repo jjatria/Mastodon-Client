@@ -2,124 +2,185 @@ package Mastodon::App;
 
 use v5.10.0;
 use Moo;
-use Types::Standard qw( Str Maybe Undef ArrayRef Dict slurpy );
+use Types::Standard qw( Str Bool Maybe Undef ArrayRef Dict slurpy );
+use Types::Common::String qw( NonEmptyStr );
 use Types::Path::Tiny qw( Path );
+use Mastodon::Types qw( DateTime );
+use Try::Tiny;
+require JSON;
+use Encode qw( encode );
+use Carp;
+use DDP;
 
+use Log::Any qw( $log );
 with 'Mastodon::Role::UserAgent';
 
 has name => (
   is => 'ro',
-  isa => Str,
-  lazy => 1,
-);
-
-has id => (
-  is => 'ro',
-  isa => Str,
-  lazy => 1,
+  isa => NonEmptyStr,
 );
 
 has client_id => (
-  is => 'ro',
-  isa => Str,
+  is => 'rw',
+  isa => NonEmptyStr,
   lazy => 1,
 );
 
 has client_secret => (
-  is => 'ro',
-  isa => Str,
+  is => 'rw',
+  isa => NonEmptyStr,
   lazy => 1,
 );
 
 has access_token => (
-  is => 'ro',
-  isa => Str,
+  is => 'rw',
+  isa => NonEmptyStr,
   lazy => 1,
 );
 
-sub log_in {
+has authorized => (
+  is => 'rw',
+  isa => Maybe[DateTime],
+  lazy => 1,
+  default => sub { undef },
+  coerce => 1,
+);
+
+has scopes => (
+  is => 'ro',
+  isa => ArrayRef,
+  lazy => 1,
+  default => sub { [qw( read write follow )] },
+);
+
+sub stream {
   my $self = shift;
+
+  state $check = compile( slurpy Dict[
+      name  => NonEmptyStr->plus_coercions( Undef, sub { 'user' } ),
+      tag   => Maybe[NonEmptyStr],
+    ]
+  );
+  my ($params) = $check->(@_);
+
+  croak $log->fatalf('"%s" is not a known timeline name"', $params->{name})
+    if $params->{name} !~ /(user|public)/;
+
+  my $endpoint = $self->instance
+    . '/api/v' . $self->api_version
+    . '/streaming/'
+    . ((defined $params->{tag} and $params->{tag})
+      ? ('hashtag?' . $params->{tag})
+      : $params->{name});
+
+  use Mastodon::Listener;
+  return Mastodon::Listener->new(
+    url => $endpoint,
+    access_token => $self->access_token,
+  );
+}
+
+sub timeline {
+  my $self = shift;
+
+  state $check = compile( slurpy Dict[
+      name  => NonEmptyStr->plus_coercions( Undef, sub { 'home' } ),
+      local => Bool->plus_coercions( Undef, sub { 0 } ),
+      tag   => Maybe[NonEmptyStr],
+    ]
+  );
+  my ($params) = $check->(@_);
+
+  croak $log->fatalf('"%s" is not a known timeline name"', $params->{name})
+    if $params->{name} !~ /(home|public)/;
+
+  my $endpoint = (defined $params->{tag})
+    ? 'timelines/tag/' . $params->{tag}
+    : 'timelines/'     . $params->{name};
+  $endpoint .= '?local' if $params->{local};
+
+  return $self->get($endpoint);
+}
+
+sub register {
+  my $self = shift;
+
+  if ($self->client_id && $self->client_secret) {
+    $log->warn('App is already registered');
+    return $self;
+  }
+
+  state $check = compile( slurpy Dict[
+    instance      => URI->plus_coercions( Undef, sub { $self->instance } ),
+    redirect_uris => Str->plus_coercions( Undef, sub { $self->redirect_uri } ),
+    scopes        => ArrayRef->plus_coercions( Undef, sub { $self->scopes } ),
+    website       => Str->plus_coercions( Undef, sub { '' } ),
+  ]);
+  my ($params) = $check->(@_);
+
+  my $data = {
+    client_name   => $self->name,
+    redirect_uris => $params->{redirect_uris},
+    scopes        => join ' ', sort(@{$params->{scopes}}),
+  };
+
+  my $response = $self->post( 'apps', data => $data );
+
+  $self->client_id($response->{client_id});
+  $self->client_secret($response->{client_id});
+
+  return $self;
+}
+
+sub authorize {
+  my $self = shift;
+
+  unless ($self->client_id and $self->client_secret) {
+    croak $log->fatal(
+      'Cannot authorize APP without client_id and client_secret'
+    );
+  }
+
+  if ($self->access_token) {
+    $log->warn('App is already authorised');
+    return $self;
+  }
 
   state $check = compile(
     slurpy Dict[
-      client_id => Str->plus_coercions(
-        Undef, sub { $self->client_id },
-      ),
-      client_secret => Str->plus_coercions(
-        Undef, sub { $self->client_secret },
-      ),
-      username => Maybe[Str],
-      password => Maybe[Str],
-      scopes => ArrayRef->plus_coercions(
-        Undef, sub { [qw( read write follow )] }
-      ),
-      grant_type => Str->plus_coercions(
-        Undef, sub { 'password' }
-      ),
+      access_code => Str->plus_coercions( Undef, sub { '' } ),
+      username => Str->plus_coercions( Undef, sub { '' } ),
+      password => Str->plus_coercions( Undef, sub { '' } ),
     ],
   );
-  my ($opt) = $check->(@_);
-  $opt->{scopes} = [ sort @{$opt->{scopes}} ];
-  my $requested_scopes = join ' ', @{$opt->{scopes}};
+  my ($params) = $check->(@_);
 
-  my $params = {
-    grant_type => $opt->{grant_type},
-    scope => $requested_scopes,
-    client_id => $opt->{client_id},
-    client_secret => $opt->{client_secret},
-  };
-  if (defined $opt->{username} and defined $opt->{password}) {
-    $params->{username} = $opt->{username};
-    $params->{password} = $opt->{password};
-  }
-
-  my $response;
-  try {
-    my $resp = $self->post('oauth/token', params => $params );
-    $resp->is_success or die $resp->status_line;
-    $response = JSON::decode_json $resp->content;
-    $self->access_token($response->{access_token});
-  }
-  catch {
-    die 'Invalid user name and password: ', $_;
-  };
-
-  $response->{scope} = [ sort @{$response->{scope}} ];
-  my $granted_scopes = join ' ', @{$response->{scope}};
-
-  if ($requested_scopes ne $granted_scopes) {
-    die "Granted scopes '$granted_scopes' differ from requested scopes '$requested_scopes'";
-  }
-
-#   if to_file != None:
-#       with open(to_file, 'w') as token_file:
-#           token_file.write(response['access_token'] + '\n')
-
-  return $self->access_token;
-}
-
-sub save {
-  my $self = shift;
-
-  use Path::Tiny qw( cwd path );
-  state $check = compile(
-    Path->plus_coercions(
-      Str, sub { path( $_ ) },
-      Undef, sub { cwd->child( $self->name . '.ini' ) },
-    ),
-  );
-  my ($path) = $check->(@_);
-
-  use Config::Tiny;
-  my $config = Config::Tiny->new;
-  $config->{$self->name} = {
-    id            => $self->id,
-    name          => $self->name,
-    client_id     => $self->client_id,
+  my $data = {
+    client_id => $self->client_id,
     client_secret => $self->client_secret,
+    redirect_uri => $self->redirect_uri,
   };
 
-  return $config->write( $path, 'utf8' );
+  if ($params->{access_code}) {
+    $data->{grant_type} = 'authorization_code';
+    $data->{code} = $params->{access_code};
+  }
+  else {
+    $data->{grant_type} = 'password';
+    $data->{username} = $params->{username};
+    $data->{password} = $params->{password};
+  }
+
+  my $response = $self->post('oauth/token', data => $data );
+  if (defined $response->{error}) {
+    $log->warn($response->{error_description});
+  }
+  else {
+    $self->access_token($response->{access_token});
+    $self->authorized($response->{created_at});
+  }
+
+  return $self;
 }
 
 1;

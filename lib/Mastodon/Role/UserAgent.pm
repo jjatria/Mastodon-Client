@@ -5,14 +5,18 @@ use Moo::Role;
 
 use Log::Any qw( $log );
 
-use Types::Standard qw( Bool Undef Str Num ArrayRef HashRef Dict slurpy );
-use Mastodon::Types qw( UserAgent );
+use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
+use Mastodon::Types qw( URI UserAgent );
 use Type::Params qw( compile );
+use Carp;
+use DDP;
+use Data::Dumper;
 
 has instance => (
   is => 'ro',
-  isa => Str,
-  default => 'https://mastodon.cloud',
+  isa => URI,
+  default => 'https://mastodon.social',
+  coerce => 1,
 );
 
 has api_version => (
@@ -21,12 +25,11 @@ has api_version => (
   default => 1,
 );
 
-has autorization_url => (
+has redirect_uri => (
   is => 'ro',
   isa => Str,
-  init_arg => undef,
   lazy => 1,
-  default => sub { ... },
+  default => 'urn:ietf:wg:oauth:2.0:oob',
 );
 
 has user_agent => (
@@ -34,25 +37,85 @@ has user_agent => (
   isa => UserAgent,
   default => sub {
     require LWP::UserAgent;
-    return LWP::UserAgent->new;
+    my $ua = LWP::UserAgent->new;
+    $ua->cookie_jar( {} );
+    return $ua;
   },
 );
 
-sub get  { shift->_request( get  => @_ ) }
+has authenticator => (
+  is => 'ro',
+  isa => UserAgent,
+  lazy => 1,
+  default => sub {
+    my $self = shift;
+    require LWP::Authen::OAuth2;
+    return LWP::Authen::OAuth2->new(
+      client_id => $self->client_id,
+      client_secret => $self->client_secret,
+      redirect_uri => $self->redirect_uri,
+      authorization_endpoint => $self->instance . '/oauth/authorize',
+      token_endpoint => $self->instance . '/oauth/token',
+      ua => $self->user_agent,
+    );
+  },
+);
 
+sub authorization_url {
+  my $self = shift;
+
+  unless ($self->client_id and $self->client_secret) {
+    croak $log->fatal(
+      'Cannot get authorization URL without client_id and client_secret'
+    );
+  }
+
+  state $check = compile( slurpy Dict[
+    instance => URI->plus_coercions( Undef, sub { $self->instance } ),
+  ]);
+
+  use URI::QueryParam;
+  my ($params) = $check->(@_);
+  my $uri = URI->new('/oauth/authorize')->abs($params->{instance});
+  $uri->query_param(redirect_uri => $self->redirect_uri);
+  $uri->query_param(response_type => 'code');
+  $uri->query_param(client_id => $self->client_id);
+  return $uri;
+}
+
+sub _build_url {
+  my $self = shift;
+
+  state $check = compile(
+    URI->plus_coercions(
+      Str, sub {
+        s%(^/|/$)%%g;
+        require URI;
+        my $api = (m%^/?oauth/%) ? '' : 'api/v' . $self->api_version . '/';
+        URI->new(join '/', $self->instance, $api . $_);
+      },
+    )
+  );
+
+  my ($url) = $check->(@_);
+  return $url;
+}
+
+sub get  { shift->_request( get  => @_ ) }
 sub post { shift->_request( post => @_ ) }
 
 sub _request {
   my $self = shift;
 
-  state $check = compile( Str, Str,
+  state $check = compile( Str,
+    URI->plus_coercions( Str, sub { $self->_build_url($_) } ),
     slurpy Dict[
       params  => HashRef->plus_coercions(
         Undef, sub { {} }
       ),
-      headers => ArrayRef->plus_coercions(
-        HashRef, sub { %{$_} },
-        Undef,   sub { [] },
+      headers => HashRef->plus_coercions(
+        ArrayRef, sub { { @{$_} } },
+        Undef,    sub { {} },
       ),
       data => ArrayRef->plus_coercions(
         HashRef, sub { [%{$_}] },
@@ -60,25 +123,33 @@ sub _request {
       ),
     ],
   );
-  my ($method, $url, $params) = $check->(@_);
+  my ($method, $target, $params) = $check->(@_);
   $method = lc($method);
 
-  use URI;
-  use URI::QueryParam;
-  my $uri = URI->new(join '/', $self->instance, 'api', 'v' . $self->api_version, $url);
-  $uri->query_param(%{$params->{params}});
-
-  my @fields = (
-#     Authorization => 'Bearer ' . $self->access_token,
-    @{$params->{headers}},
-  );
-  $log->trace(uc($method), $uri, "\n", @fields);
-  if ($method =~ /(put|post)/ and scalar @{$params->{data}}) {
-    push @fields, 'Content';
-    push @fields, $params->{data};
+  if ($self->can('access_token') and $self->access_token) {
+    $params->{headers} = {
+      Authorization => 'Bearer ' . $self->access_token,
+      %{$params->{headers}},
+    };
   }
 
-  return $self->user_agent->$method( $uri, @fields );
+#   $log->debugf('Method: %s', $method);
+#   $log->debugf('Target: %s', $target);
+#   $log->debugf('Params: %s', Dumper($params));
+
+  use Encode qw( encode );
+  return try {
+    my @args = $target;
+    push @args, $params->{data} unless $method eq 'get';
+    @args = (@args, %{$params->{headers}});
+
+    my $res = $self->user_agent->$method( @args );
+    die $res->status_line unless $res->is_success;
+    return JSON::decode_json( encode('utf8', $res->decoded_content) );
+  }
+  catch {
+    croak $log->fatalf('Could not complete request: %s', $_);
+  };
 }
 
 1;

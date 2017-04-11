@@ -9,8 +9,6 @@ use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
 use Mastodon::Types qw( URI UserAgent );
 use Type::Params qw( compile );
 use Carp;
-use DDP;
-use Data::Dumper;
 
 has instance => (
   is => 'ro',
@@ -37,27 +35,7 @@ has user_agent => (
   isa => UserAgent,
   default => sub {
     require LWP::UserAgent;
-    my $ua = LWP::UserAgent->new;
-    $ua->cookie_jar( {} );
-    return $ua;
-  },
-);
-
-has authenticator => (
-  is => 'ro',
-  isa => UserAgent,
-  lazy => 1,
-  default => sub {
-    my $self = shift;
-    require LWP::Authen::OAuth2;
-    return LWP::Authen::OAuth2->new(
-      client_id => $self->client_id,
-      client_secret => $self->client_secret,
-      redirect_uri => $self->redirect_uri,
-      authorization_endpoint => $self->instance . '/oauth/authorize',
-      token_endpoint => $self->instance . '/oauth/token',
-      ua => $self->user_agent,
-    );
+    LWP::UserAgent->new;
   },
 );
 
@@ -133,11 +111,13 @@ sub _request {
     };
   }
 
-#   $log->debugf('Method: %s', $method);
-#   $log->debugf('Target: %s', $target);
-#   $log->debugf('Params: %s', Dumper($params));
+  # $log->debugf('Method: %s', $method);
+  # $log->debugf('Target: %s', $target);
+  # $log->debugf('Params: %s', Dumper($params));
 
   use Encode qw( encode );
+  use Try::Tiny;
+
   return try {
     my @args = $target;
     push @args, $params->{data} unless $method eq 'get';

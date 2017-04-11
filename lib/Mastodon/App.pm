@@ -1,16 +1,14 @@
+# ABSTRACT: An app for the Mastodon platform
 package Mastodon::App;
 
 use v5.10.0;
 use Moo;
+
 use Types::Standard qw( Str Bool Maybe Undef ArrayRef Dict slurpy );
 use Types::Common::String qw( NonEmptyStr );
-use Types::Path::Tiny qw( Path );
 use Mastodon::Types qw( DateTime );
-use Try::Tiny;
-require JSON;
-use Encode qw( encode );
+
 use Carp;
-use DDP;
 
 use Log::Any qw( $log );
 with 'Mastodon::Role::UserAgent';

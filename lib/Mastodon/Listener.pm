@@ -66,6 +66,8 @@ has tx => (
   },
 );
 
+# Would love to move away from Mojo::UserAgent
+# But how?
 has ua => (
   is => 'rw',
   lazy => 1,
@@ -104,12 +106,18 @@ sub start {
         $data =~ s/^data:\s+//;
         next if defined $buffer and $buffer eq '';
 
-        use JSON qw( decode_json );
 
         my $event = $buffer;
         $buffer = '';
 
-        $data = decode_json($data) unless $event =~ /delete/;
+        use Try::Tiny;
+        if ($event !~ /delete/) {
+          try {
+            require JSON;
+            $data = JSON::decode_json( $data );
+          }
+          catch { $log->warn($_) };
+        }
         $self->emit( $event => $data);
       }
     }

@@ -151,7 +151,7 @@ sub register {
   my $response = $self->post( 'apps', data => $data );
 
   $self->client_id($response->{client_id});
-  $self->client_secret($response->{client_id});
+  $self->client_secret($response->{client_secret});
 
   return $self;
 }

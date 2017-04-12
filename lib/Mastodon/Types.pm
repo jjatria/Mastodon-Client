@@ -9,10 +9,13 @@ use Type::Library
     App
   );
 
-use Type::Utils qw( class_type duck_type coerce from via );
+use Type::Utils -all;
 use Types::Standard qw( Str HashRef Num );
+use Types::Path::Tiny qw( File to_File);
+
 use URI;
 use DateTime;
+use MIME::Base64;
 
 duck_type 'UserAgent', [qw( get post delete )];
 
@@ -30,5 +33,23 @@ coerce 'URI', from Str, via {
 };
 
 coerce 'DateTime', from Num, via { DateTime->from_epoch( epoch => $_ ) };
+
+declare 'Image', as Str, where { m%^data:image/(png|jpeg);base64,[a-zA-Z0-9/+=\n]+$% };
+
+coerce File, from Str, via {
+  require Path::Tiny;
+  return Path::Tiny::path( $_ );
+};
+
+coerce 'Image',
+  from File->coercibles,
+  via {
+    my $file = to_File($_);
+    require Image::Info;
+    require MIME::Base64;
+    my $type = lc Image::Info::image_type( $file->stringify )->{file_type};
+    my $img = "data:image/$type;base64," . MIME::Base64::encode_base64( $file->slurp );
+    return $img;
+  };
 
 1;

@@ -6,9 +6,9 @@ our $VERSION = '0.001';
 use v5.10.0;
 use Moo;
 
-use Types::Standard qw( Str Bool Maybe Undef ArrayRef Dict slurpy );
+use Types::Standard qw( Str Optional Bool Maybe Undef HashRef ArrayRef Dict slurpy );
 use Types::Common::String qw( NonEmptyStr );
-use Mastodon::Types qw( DateTime URI );
+use Mastodon::Types qw( DateTime Image URI );
 
 use Carp;
 
@@ -52,6 +52,30 @@ has scopes => (
   lazy => 1,
   default => sub { [qw( read write follow )] },
 );
+
+sub get_account {
+  my $self = shift;
+  state $check = compile( Optional[Str] );
+  my ($id) = $check->(@_);
+  $id //= 'verify_credentials';
+
+  return $self->get("accounts/$id");
+
+}
+
+sub update_account {
+  my $self = shift;
+
+  state $check = compile( slurpy Dict[
+    display_name => Optional[Str],
+    note => Optional[Str],
+    avatar => Optional[Image],
+    header => Optional[Image],
+  ]);
+  my ($data) = $check->(@_);
+
+  return $self->patch('accounts/update_credentials', data => $data);
+}
 
 sub stream {
   my $self = shift;

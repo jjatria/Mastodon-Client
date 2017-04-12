@@ -1,5 +1,7 @@
 package Mastodon::Types;
 
+our $VERSION = '';
+
 use Type::Library
   -base,
   -declare => qw(

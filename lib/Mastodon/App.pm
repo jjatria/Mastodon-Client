@@ -1,6 +1,8 @@
 # ABSTRACT: An app for the Mastodon platform
 package Mastodon::App;
 
+our $VERSION = '0.001';
+
 use v5.10.0;
 use Moo;
 

@@ -13,8 +13,26 @@ use Log::Any::Adapter;
 Log::Any::Adapter->set( 'Stdout' );
 
 use Config::Tiny;
-my $config = Config::Tiny->read( $ARGV[0] );
-my $app = Mastodon::App->new( $config->{_} );
+my $config = (scalar @ARGV) ? Config::Tiny->read( $ARGV[0] )->{_} : {};
+my $app = Mastodon::App->new( $config );
+
+my $listener = $app->stream( name => 'public' );
+$listener->on( update => sub {
+  my ($listener, $msg) = @_;
+
+  use Term::ANSIColor qw(:constants);
+  use HTML::FormatText::WithLinks;
+  my $f = HTML::FormatText::WithLinks->new;
+
+  local $Term::ANSIColor::AUTORESET = 1;
+
+  say BOLD BLUE sprintf('%s (%s):',
+    $msg->{account}{display_name},
+    $msg->{account}{acct},
+  );
+  print $f->parse($msg->{content});
+});
+$listener->start;
 
 # # Subscribe to public stream
 # # Defaults to 'user'

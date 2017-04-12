@@ -8,7 +8,7 @@ use Moo;
 
 use Types::Standard qw( Str Bool Maybe Undef ArrayRef Dict slurpy );
 use Types::Common::String qw( NonEmptyStr );
-use Mastodon::Types qw( DateTime );
+use Mastodon::Types qw( DateTime URI );
 
 use Carp;
 

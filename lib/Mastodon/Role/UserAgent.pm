@@ -131,9 +131,14 @@ sub _request {
     my $request = HTTP::Request::Common->can($type)->( @args );
     $request->method($method);
 
-    my $res = $self->user_agent->request( $request );
-    die $res->status_line unless $res->is_success;
-    return JSON::decode_json( encode('utf8', $res->decoded_content) );
+    my $response = $self->user_agent->request( $request );
+
+    require JSON;
+    my $data = JSON::decode_json( encode('utf8', $response->decoded_content) );
+    die $data->{error} if defined $data->{error};
+    die $response->status_line unless $response->is_success;
+
+    return $data;
   }
   catch {
     croak $log->fatalf('Could not complete request: %s', $_);

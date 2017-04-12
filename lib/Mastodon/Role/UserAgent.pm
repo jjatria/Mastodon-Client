@@ -81,8 +81,9 @@ sub _build_url {
   return $url;
 }
 
-sub get  { shift->_request( get  => @_ ) }
-sub post { shift->_request( post => @_ ) }
+sub get   { shift->_request( get   => @_ ) }
+sub post  { shift->_request( post  => @_ ) }
+sub patch { shift->_request( patch => @_ ) }
 
 sub _request {
   my $self = shift;
@@ -97,14 +98,14 @@ sub _request {
         ArrayRef, sub { { @{$_} } },
         Undef,    sub { {} },
       ),
-      data => ArrayRef->plus_coercions(
-        HashRef, sub { [%{$_}] },
+      data => HashRef->plus_coercions(
+        ArrayRef, sub { {@{$_}} },
         Undef,   sub { [] },
       ),
     ],
   );
   my ($method, $target, $params) = $check->(@_);
-  $method = lc($method);
+  $method = uc($method);
 
   if ($self->can('access_token') and $self->access_token) {
     $params->{headers} = {
@@ -122,10 +123,15 @@ sub _request {
 
   return try {
     my @args = $target;
-    push @args, $params->{data} unless $method eq 'get';
+    push @args, [%{$params->{data}}] unless $method eq 'GET';
     @args = (@args, %{$params->{headers}});
 
-    my $res = $self->user_agent->$method( @args );
+    require HTTP::Request::Common;
+    my $type = ($method eq 'PATCH') ? 'POST' : $method;
+    my $request = HTTP::Request::Common->can($type)->( @args );
+    $request->method($method);
+
+    my $res = $self->user_agent->request( $request );
     die $res->status_line unless $res->is_success;
     return JSON::decode_json( encode('utf8', $res->decoded_content) );
   }

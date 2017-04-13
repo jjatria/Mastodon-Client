@@ -213,3 +213,67 @@ sub authorize {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+Mastodon::Client - Talk to a Mastodon server
+
+=head1 SYNOPSIS
+
+    use Mastodon::Client;
+
+    my $client = Mastodon::Client->new(
+        instance      => 'mastodon.social',
+        name          => 'PerlBot',
+        client_id     => $client_id,
+        client_secret => $client_secret,
+        access_token  => $access_token,
+    );
+
+    $client->post( statuses => {
+      status => 'Posted to a Mastodon server!',
+      visibility => 'public',
+    })
+
+    # Streaming interface might change!
+    my $listener = $client->stream( 'public' );
+    $listener->on( update => sub {
+      my ($listener, $msg) = @_;
+      printf "%s said: %s\n", $msg->{account}{display_name}, $msg->{content};
+    });
+    $listener->start;
+
+=head1 DESCRIPTION
+
+Mastodon::Client lets you talk to a Mastodon server.
+
+This distribution is still in development, and the interface might
+change in the future. But changes should mostly be to add convenience
+methods for the more common tasks.
+
+The use of the request methods (B<post>, B<get>, etc) is not likely to
+change, and as long as you know the endpoints you are reaching, this
+should be usable right now.
+
+=head1 AUTHOR
+
+=over 4
+
+=item *
+
+José Joaquín Atria <jjatria@cpan.org>
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2017 by José Joaquín Atria.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

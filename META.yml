@@ -1,0 +1,27 @@
+---
+abstract: 'An app for the Mastodon platform'
+author:
+  - 'José Joaquín Atria <jjatria@cpan.org>'
+build_requires:
+  Test::Roo: '0'
+configure_requires:
+  ExtUtils::MakeMaker: '0'
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 6.009, CPAN::Meta::Converter version 2.150005'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: Mastodon-Client
+requires:
+  AnyEvent::Emitter: '0.02'
+  LWP::UserAgent: '6.25'
+  Log::Any: '1.049'
+  Moo: '2.003002'
+  Try::Tiny: '0.28'
+  Type::Params: '1.000006'
+  Types::Common::String: '0'
+  Types::Standard: '0'
+  URI: '1.71'
+version: '0.001'
+x_serialization_backend: 'YAML::Tiny version 1.70'

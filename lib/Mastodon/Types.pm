@@ -52,4 +52,16 @@ coerce 'Image',
     return $img;
   };
 
+  foreach my $name (qw(
+      Account Mention Tag Status Attachment Application Results Report
+      Relationship Notification Instance Error Context Card
+    )) {
+
+    class_type $name, { class => "Mastodon::Entity::$name" };
+    coerce $name, from HashRef, via {
+      require "Mastodon::Entity::$name";
+      "Mastodon::Entity::$name"->new($_);
+    };
+  }
+
 1;

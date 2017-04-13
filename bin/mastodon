@@ -7,16 +7,17 @@ use warnings;
 use strict;
 use diagnostics;
 
-use Mastodon::App;
+use Mastodon::Client;
 use Log::Any qw( $log );
 use Log::Any::Adapter;
 Log::Any::Adapter->set( 'Stdout' );
 
 use Config::Tiny;
 my $config = (scalar @ARGV) ? Config::Tiny->read( $ARGV[0] )->{_} : {};
-my $app = Mastodon::App->new( $config );
+my $app = Mastodon::Client->new( $config );
 
 my $listener = $app->stream( name => 'public' );
+
 $listener->on( update => sub {
   my ($listener, $msg) = @_;
 

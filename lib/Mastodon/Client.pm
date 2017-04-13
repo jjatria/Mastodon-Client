@@ -74,7 +74,7 @@ sub update_account {
   ]);
   my ($data) = $check->(@_);
 
-  return $self->patch( accounts/update_credentials => $data);
+  return $self->patch( 'accounts/update_credentials' => $data);
 }
 
 sub stream {
@@ -193,7 +193,7 @@ sub authorize {
     $data->{password} = $params->{password};
   }
 
-  my $response = $self->post( oauth/token => $data );
+  my $response = $self->post( 'oauth/token' => $data );
 
   if (defined $response->{error}) {
     $log->warn($response->{error_description});

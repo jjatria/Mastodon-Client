@@ -108,7 +108,6 @@ sub start {
         $data =~ s/^data:\s+//;
         next if defined $buffer and $buffer eq '';
 
-
         my $event = $buffer;
         $buffer = '';
 

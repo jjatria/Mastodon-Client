@@ -60,6 +60,7 @@ sub authorization_url {
   $uri->query_param(redirect_uri => $self->redirect_uri);
   $uri->query_param(response_type => 'code');
   $uri->query_param(client_id => $self->client_id);
+  $uri->query_param(scope => join ' ', sort(@{$self->scopes}));
   return $uri;
 }
 

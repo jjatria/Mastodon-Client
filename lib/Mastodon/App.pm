@@ -196,10 +196,17 @@ sub authorize {
   }
 
   my $response = $self->post('oauth/token', data => $data );
+
   if (defined $response->{error}) {
     $log->warn($response->{error_description});
   }
   else {
+    my $granted_scopes = join ' ', sort split(/ /, $response->{scope});
+    my $requested_scopes = join ' ', sort @{$self->scopes};
+
+    croak $log->fatal('Granted and requested scopes do not match')
+      if $granted_scopes ne $requested_scopes;
+
     $self->access_token($response->{access_token});
     $self->authorized($response->{created_at});
   }

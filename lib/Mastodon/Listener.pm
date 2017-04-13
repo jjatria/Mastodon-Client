@@ -5,7 +5,8 @@ our $VERSION = '';
 use Moo;
 use Carp;
 
-extends 'Mojo::EventEmitter';
+extends 'AnyEvent::Emitter';
+
 use Log::Any qw( $log );
 use Types::Standard qw( Str );
 
@@ -43,56 +44,36 @@ has url => (
   required => 1,
 );
 
-has buffer => (
-  is => 'rw',
-  isa => Str,
-  default => '',
-);
-
 has access_token => (
   is => 'ro',
   required => 1,
 );
 
-has tx => (
-  is => 'rw',
-  lazy => 1,
-  default => sub {
-    my $self = shift;
-    my $tx = $self->ua->build_tx( GET => $self->url );
-    $tx->req->headers->authorization('Bearer ' . $self->access_token);
-    $tx->res->content
-      ->unsubscribe('read')
-      ->on(read => sub { $self->parse_message(@_) });
-    return $tx;
-  },
-);
-
-# Would love to move away from Mojo::UserAgent
-# But how?
 has ua => (
   is => 'rw',
   lazy => 1,
   default => sub {
-    use Mojo::UserAgent;
-    Mojo::UserAgent->new(max_response_size => 0);
+    require LWP::UserAgent;
+    LWP::UserAgent->new;
   },
 );
 
 sub start {
-  $_[0]->ua->start($_[0]->tx);
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+  my ($self) = @_;
+
+  $self->ua->get( $self->url,
+    Authorization => 'Bearer ' . $self->access_token,
+    ':content_cb' => sub { $self->parse_message(@_) },
+  );
 }
 
 {
   my $buffer;
 
   sub parse_message {
-    my ($self, $msg) = @_;
+    my ($self, $chunk, $response, $protocol) = @_;
 
-    my $chunk = $msg->{buffer};
     chomp $chunk;
-
     my @chunks = split /\n/, $chunk;
 
     foreach my $data (@chunks) {

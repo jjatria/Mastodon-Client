@@ -82,9 +82,9 @@ sub _build_url {
   return $url;
 }
 
-sub get   { shift->_request( get   => @_ ) }
-sub post  { shift->_request( post  => @_ ) }
-sub patch { shift->_request( patch => @_ ) }
+sub get   { shift->_request( get   => shift ) }
+sub post  { shift->_request( post  => shift, data => @_ ) }
+sub patch { shift->_request( patch => shift, data => @_ ) }
 
 sub _request {
   my $self = shift;

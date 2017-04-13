@@ -74,7 +74,7 @@ sub update_account {
   ]);
   my ($data) = $check->(@_);
 
-  return $self->patch('accounts/update_credentials', data => $data);
+  return $self->patch( accounts/update_credentials => $data);
 }
 
 sub stream {
@@ -142,13 +142,11 @@ sub register {
   ]);
   my ($params) = $check->(@_);
 
-  my $data = {
+  my $response = $self->post( apps => {
     client_name   => $self->name,
     redirect_uris => $params->{redirect_uris},
     scopes        => join ' ', sort(@{$params->{scopes}}),
-  };
-
-  my $response = $self->post( 'apps', data => $data );
+  });
 
   $self->client_id($response->{client_id});
   $self->client_secret($response->{client_secret});
@@ -195,7 +193,7 @@ sub authorize {
     $data->{password} = $params->{password};
   }
 
-  my $response = $self->post('oauth/token', data => $data );
+  my $response = $self->post( oauth/token => $data );
 
   if (defined $response->{error}) {
     $log->warn($response->{error_description});

@@ -1,6 +1,6 @@
 package Mastodon::Listener;
 
-our $VERSION = '';
+our $VERSION = '0';
 
 use Moo;
 use Carp;

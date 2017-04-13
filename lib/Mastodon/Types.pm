@@ -1,6 +1,6 @@
 package Mastodon::Types;
 
-our $VERSION = '';
+our $VERSION = '0';
 
 use Type::Library
   -base,

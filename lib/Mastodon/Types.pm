@@ -6,7 +6,9 @@ use Type::Library
   -base,
   -declare => qw(
     UserAgent
-    App
+    Image
+    DateTime
+    URI
   );
 
 use Type::Utils -all;
@@ -20,8 +22,6 @@ use MIME::Base64;
 duck_type 'UserAgent', [qw( get post delete )];
 
 class_type 'DateTime', { class => 'DateTime' };
-
-class_type 'App', { class => 'Mastodon::App' };
 
 class_type 'URI', { class => 'URI' };
 

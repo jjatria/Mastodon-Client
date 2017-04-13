@@ -9,7 +9,7 @@ extends 'Mojo::EventEmitter';
 use Log::Any qw( $log );
 use Types::Standard qw( Str );
 
-# my $app = Mastodon::App->new( $config->{_} );
+# my $app = Mastodon::Client->new( $config->{_} );
 # my $listener = $app->stream( name => 'public' );
 #
 # $listener->on( update => sub {

@@ -1,5 +1,5 @@
 # ABSTRACT: An app for the Mastodon platform
-package Mastodon::App;
+package Mastodon::Client;
 
 our $VERSION = '0.001';
 
@@ -130,7 +130,7 @@ sub register {
   my $self = shift;
 
   if ($self->client_id && $self->client_secret) {
-    $log->warn('App is already registered');
+    $log->warn('Client is already registered');
     return $self;
   }
 
@@ -159,12 +159,12 @@ sub authorize {
 
   unless ($self->client_id and $self->client_secret) {
     croak $log->fatal(
-      'Cannot authorize APP without client_id and client_secret'
+      'Cannot authorize client without client_id and client_secret'
     );
   }
 
   if ($self->access_token) {
-    $log->warn('App is already authorised');
+    $log->warn('Client is already authorised');
     return $self;
   }
 

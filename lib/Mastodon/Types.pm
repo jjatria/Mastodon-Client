@@ -14,8 +14,6 @@ use MIME::Base64;
 
 duck_type 'UserAgent', [qw( get post delete )];
 
-class_type 'DateTime', { class => 'DateTime' };
-
 class_type 'URI', { class => 'URI' };
 
 coerce 'URI', from Str, via {
@@ -25,7 +23,22 @@ coerce 'URI', from Str, via {
   return $uri;
 };
 
-coerce 'DateTime', from Num, via { 'DateTime'->from_epoch( epoch => $_ ) };
+# We provide our own DateTime type because the Types::DateTime distribution
+# is currently undermaintained
+
+class_type 'DateTime', { class => 'DateTime' };
+
+coerce 'DateTime',
+  from Num,
+    via { 'DateTime'->from_epoch( epoch => $_ ) }
+  from Str,
+    via {
+      require DateTime::Format::Strptime;
+      DateTime::Format::Strptime->new(
+        pattern   => '%FT%T.%3N%Z',
+        on_error  => 'croak',
+      )->parse_datetime($_);
+    };
 
 declare 'Acct', as Str;
 

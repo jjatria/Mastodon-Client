@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use v5.10.0;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 use Carp;
 use Log::Any qw( $log );

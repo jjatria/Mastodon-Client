@@ -1,7 +1,8 @@
 package Mastodon::Entity::Report;
 
-use Moo;
+our $VERSION = '0';
 
+use Moo;
 use Types::Standard qw( Int Any );
 
 has id           => ( is => 'ro', isa => Int );

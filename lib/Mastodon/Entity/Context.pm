@@ -1,11 +1,12 @@
 package Mastodon::Entity::Context;
 
-use Moo;
+our $VERSION = '0';
 
+use Moo;
 use Types::Standard qw( ArrayRef );
 use Mastodon::Types qw( Status );
 
-has ancestors   => ( is => 'ro', isa => ArrayRef[Status] );
-has descendants => ( is => 'ro', isa => ArrayRef[Status] );
+has ancestors   => ( is => 'ro', isa => ArrayRef [Status] );
+has descendants => ( is => 'ro', isa => ArrayRef [Status] );
 
 1;

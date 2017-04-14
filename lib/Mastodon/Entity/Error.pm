@@ -1,7 +1,8 @@
 package Mastodon::Entity::Error;
 
-use Moo;
+our $VERSION = '0';
 
+use Moo;
 use Types::Standard qw( Str );
 
 has error => ( is => 'ro', isa => Str );

@@ -54,58 +54,18 @@ coerce 'Image',
     return $img;
   };
 
-class_type Tag, { class => 'Mastodon::Entity::Tag' };
+# Entity types
 
-coerce 'Tag', from HashRef, via {
-  require Mastodon::Entity::Tag;
-  Mastodon::Entity::Tag->new($_);
-};
+foreach my $name (qw(
+    Account Application Attachment Card Context Error Instance
+    Mention Notification Relationship Report Result Status Tag
+  )) {
 
-class_type Error, { class => 'Mastodon::Entity::Error' };
-
-coerce 'Error', from HashRef, via {
-  require Mastodon::Entity::Error;
-  Mastodon::Entity::Error->new($_);
-};
-
-class_type Application, { class => 'Mastodon::Entity::Application' };
-
-coerce 'Application', from HashRef, via {
-  require Mastodon::Entity::Application;
-  Mastodon::Entity::Application->new($_);
-};
-
-class_type Card, { class => 'Mastodon::Entity::Card' };
-
-coerce 'Card', from HashRef, via {
-  require Mastodon::Entity::Card;
-  Mastodon::Entity::Card->new($_);
-};
-
-class_type Mention, { class => 'Mastodon::Entity::Mention' };
-
-coerce 'Mention', from HashRef, via {
-  require Mastodon::Entity::Mention;
-  Mastodon::Entity::Mention->new($_);
-};
-
-class_type Account, { class => 'Mastodon::Entity::Account' };
-
-coerce 'Account', from HashRef, via {
-  require Mastodon::Entity::Account;
-  Mastodon::Entity::Account->new($_);
-};
-
-# foreach my $name (qw(
-#     Account Mention Tag Status Attachment Application Results Report
-#     Relationship Notification Instance Error Context Card
-#   )) {
-#
-#   class_type $name, { class => "Mastodon::Entity::$name" };
-#   coerce $name, from HashRef, via {
-#     require "Mastodon::Entity::$name";
-#     "Mastodon::Entity::$name"->new($_);
-#   };
-# }
+  class_type $name, { class => "Mastodon::Entity::$name" };
+  coerce $name, from HashRef, via {
+    eval "require Mastodon::Entity::$name";
+    "Mastodon::Entity::$name"->new($_);
+  };
+}
 
 1;

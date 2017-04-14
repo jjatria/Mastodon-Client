@@ -83,6 +83,7 @@ sub stream {
   state $check = compile( slurpy Dict[
       name  => NonEmptyStr->plus_coercions( Undef, sub { 'user' } ),
       tag   => Maybe[NonEmptyStr],
+      coerce_entities => Bool->plus_coercions( Undef, sub { 0 } ),
     ]
   );
   my ($params) = $check->(@_);
@@ -101,6 +102,7 @@ sub stream {
   return Mastodon::Listener->new(
     url => $endpoint,
     access_token => $self->access_token,
+    coerce_entities => $params->{coerce_entities},
   );
 }
 

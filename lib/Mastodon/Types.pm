@@ -2,14 +2,7 @@ package Mastodon::Types;
 
 our $VERSION = '0';
 
-use Type::Library
-  -base,
-  -declare => qw(
-    UserAgent
-    Image
-    DateTime
-    URI
-  );
+use Type::Library -base;
 
 use Type::Utils -all;
 use Types::Standard qw( Str HashRef Num );

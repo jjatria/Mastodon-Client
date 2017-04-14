@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
 
-use v5.24.0;
 binmode STDOUT, ':utf8';
 
 use warnings;
@@ -27,7 +26,7 @@ $listener->on( update => sub {
 
   local $Term::ANSIColor::AUTORESET = 1;
 
-  say BOLD BLUE sprintf('%s (%s):',
+  print BOLD BLUE sprintf("%s (%s):\n",
     $msg->{account}{display_name},
     $msg->{account}{acct},
   );

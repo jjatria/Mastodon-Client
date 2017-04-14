@@ -6,6 +6,6 @@ use Types::Standard qw( Str );
 use Mastodon::Types qw( URI );
 
 has name     => ( is => 'ro', isa => Str );
-has website  => ( is => 'ro', isa => URI );
+has website  => ( is => 'ro', isa => URI, coerce => 1);
 
 1;

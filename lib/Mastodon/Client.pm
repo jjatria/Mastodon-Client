@@ -286,6 +286,10 @@ should be usable right now.
 
 José Joaquín Atria <jjatria@cpan.org>
 
+=item *
+
+Lance Wicks <lancew@cpan.org>
+
 =back
 
 =head1 COPYRIGHT AND LICENSE

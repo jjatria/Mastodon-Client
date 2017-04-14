@@ -40,6 +40,9 @@ coerce 'DateTime',
       )->parse_datetime($_);
     };
 
+# Validation here could be improved
+# It is either a username if a local account, or a username@instance.tld
+# but what characters are valid?
 declare 'Acct', as Str;
 
 declare 'Image', as Str, where { m%^data:image/(png|jpeg);base64,[a-zA-Z0-9/+=\n]+$% };

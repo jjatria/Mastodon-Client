@@ -9,7 +9,8 @@ use Mastodon::Client;
 
 my $client = Mastodon::Client->new();
 
-dies_ok { $client->authorize; } 'Authorize died when no params';
+dies_ok { $client->authorize; }
+  'Cannot authorize a client without ID and secret';
 
 $client = Mastodon::Client->new(
     client_id     => 'id',
@@ -18,6 +19,6 @@ $client = Mastodon::Client->new(
 );
 
 use Data::Dumper;
-ok warning { $client->authorize; }, 'Warns if access_token';
+ok warning { $client->authorize; }, 'Warns if access_token already exists';
 
 done_testing();

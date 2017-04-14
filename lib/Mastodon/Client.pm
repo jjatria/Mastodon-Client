@@ -52,7 +52,7 @@ has scopes => (
   is      => 'ro',
   isa     => ArrayRef,
   lazy    => 1,
-  default => sub { [qw( read write follow )] },
+  default => sub { [ 'read' ] },
 );
 
 sub authorize {

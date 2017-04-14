@@ -1,4 +1,4 @@
-# ABSTRACT: An app for the Mastodon platform
+# ABSTRACT: Talk to a Mastodon server
 package Mastodon::Client;
 
 use strict;

@@ -8,7 +8,7 @@ use Carp;
 extends 'AnyEvent::Emitter';
 
 use Log::Any qw( $log );
-use Types::Standard qw( Str );
+use Types::Standard qw( Str Bool );
 
 # my $app = Mastodon::Client->new( $config->{_} );
 # my $listener = $app->stream( name => 'public' );
@@ -58,6 +58,13 @@ has ua => (
   },
 );
 
+has coerce_entities => (
+  is => 'rw',
+  isa => Bool,
+  lazy => 1,
+  default => 1,
+);
+
 sub start {
   my ($self) = @_;
 
@@ -93,13 +100,24 @@ sub start {
         $buffer = '';
 
         use Try::Tiny;
-        if ($event !~ /delete/) {
-          try {
-            require JSON;
+
+        if ($event ne 'delete') {
+          require JSON;
+
+          $data = try {
             $data = JSON::decode_json( $data );
+            if ($self->coerce_entities) {
+              use Mastodon::Types qw( :all );
+              return to_Status($data) if $event eq 'update';
+            }
+            return $data;
           }
-          catch { $log->warn($_) };
+          catch {
+            $log->warn($_);
+            return $data;
+          };
         }
+
         $self->emit( $event => $data);
       }
     }

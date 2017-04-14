@@ -246,23 +246,28 @@ Mastodon::Client - Talk to a Mastodon server
   use Mastodon::Client;
 
   my $client = Mastodon::Client->new(
-    instance    => 'mastodon.social',
-    name      => 'PerlBot',
-    client_id   => $client_id,
+    instance      => 'mastodon.social',
+    name          => 'PerlBot',
+    client_id     => $client_id,
     client_secret => $client_secret,
     access_token  => $access_token,
   );
 
   $client->post( statuses => {
-    status => 'Posted to a Mastodon server!',
+    status     => 'Posted to a Mastodon server!',
     visibility => 'public',
   })
 
   # Streaming interface might change!
-  my $listener = $client->stream( 'public' );
+  my $listener = $client->stream(
+    name            => 'public',
+    coerce_entities => 1,
+  );
   $listener->on( update => sub {
-    my ($listener, $msg) = @_;
-    printf "%s said: %s\n", $msg->{account}{display_name}, $msg->{content};
+    my ($listener, $status) = @_;
+    printf "%s said: %s\n",
+      $status->account->display_name,
+      $status->content;
   });
   $listener->start;
 

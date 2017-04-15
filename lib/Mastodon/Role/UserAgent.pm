@@ -8,6 +8,7 @@ use Moo::Role;
 use Log::Any;
 my $log = Log::Any->get_logger( category => 'Mastodon' );
 
+use List::Util qw( any );
 use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
 use Mastodon::Types qw( URI UserAgent );
 use Type::Params qw( compile );
@@ -148,7 +149,13 @@ sub _request {
         : to_Entity($data);
     }
 
-    die $data->error if ref $data eq 'Mastodon::Entity::Error';
+    if (ref $data eq 'ARRAY') {
+      die $data->{error} if any { defined $_->{error} } @{$data};
+    }
+    elsif (ref $data eq 'HASH') {
+      die $data->{error} if defined $data->{error};
+    }
+
     die $response->status_line unless $response->is_success;
 
     return $data;

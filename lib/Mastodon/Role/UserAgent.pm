@@ -5,7 +5,8 @@ our $VERSION = '0';
 use v5.10.0;
 use Moo::Role;
 
-use Log::Any qw( $log );
+use Log::Any;
+my $log = Log::Any->get_logger( category => 'Mastodon' );
 
 use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
 use Mastodon::Types qw( URI UserAgent );

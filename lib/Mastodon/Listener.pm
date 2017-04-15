@@ -3,12 +3,13 @@ package Mastodon::Listener;
 our $VERSION = '0';
 
 use Moo;
-use Carp;
-
 extends 'AnyEvent::Emitter';
 
-use Log::Any qw( $log );
+use Carp;
 use Types::Standard qw( Str Bool );
+
+use Log::Any;
+my $log = Log::Any->get_logger(category => 'Mastodon');
 
 # my $app = Mastodon::Client->new( $config->{_} );
 # my $listener = $app->stream( name => 'public' );

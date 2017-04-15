@@ -8,12 +8,14 @@ use v5.10.0;
 our $VERSION = '0.002';
 
 use Carp;
-use Log::Any qw( $log );
 use Mastodon::Types qw( Account DateTime Image URI );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
   qw( Int Str Optional Bool Maybe Undef HashRef ArrayRef Dict slurpy );
+
+use Log::Any;
+my $log = Log::Any->get_logger(category => 'Mastodon');
 
 with 'Mastodon::Role::UserAgent';
 

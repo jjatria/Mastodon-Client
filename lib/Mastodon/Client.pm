@@ -151,6 +151,14 @@ sub followers {
   return $self->get( "accounts/$id/followers" );
 }
 
+sub following {
+  my $self = shift;
+  state $check = compile( Optional [Int] );
+  my ($id) = $check->(@_);
+  $id //= $self->account->{id};
+  return $self->get( "accounts/$id/following" );
+}
+
 sub register {
   my $self = shift;
 

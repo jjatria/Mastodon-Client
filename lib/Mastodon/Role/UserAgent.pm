@@ -66,6 +66,10 @@ sub authorization_url {
   return $uri;
 }
 
+sub post  { shift->_request( post  => shift, data   => shift, @_ ) }
+sub patch { shift->_request( patch => shift, data   => shift, @_ ) }
+sub get   { shift->_request( get   => shift, params => shift, @_ ) }
+
 sub _build_url {
   my $self = shift;
 
@@ -84,52 +88,41 @@ sub _build_url {
   return $url;
 }
 
-# This is ugly. Why do I need to pass data to get?
-sub get   { shift->_request( get   => shift, data => {} ) }
-sub post  { shift->_request( post  => shift, data => @_ ) }
-sub patch { shift->_request( patch => shift, data => @_ ) }
-
 sub _request {
-  my $self = shift;
+  my $self   = shift;
+  my $method = shift;
+  my $url    = shift;
+  my $args   = { @_ };
 
-  state $check = compile( Str,
-    URI->plus_coercions( Str, sub { $self->_build_url($_) } ),
-    slurpy Dict[
-      params  => HashRef->plus_coercions(
-        Undef, sub { {} }
-      ),
-      headers => HashRef->plus_coercions(
-        ArrayRef, sub { { @{$_} } },
-        Undef,    sub { {} },
-      ),
-      data => HashRef->plus_coercions(
-        ArrayRef, sub { {@{$_}} },
-        Undef,   sub { [] },
-      ),
-    ],
-  );
-  my ($method, $target, $params) = $check->(@_);
+  $url = $self->_build_url($url) unless ref $url eq 'URI';
+
+  my $data    = $args->{data}    // {};
+  my $headers = $args->{headers} // {};
+  my $params  = $args->{params}  // {};
+
   $method = uc($method);
 
   if ($self->can('access_token') and $self->access_token) {
-    $params->{headers} = {
+    $headers = {
       Authorization => 'Bearer ' . $self->access_token,
-      %{$params->{headers}},
+      %{$headers},
     };
   }
 
   if ($log->is_trace) {
     require Data::Dumper;
-    $log->debugf('Method: %s', $method);
-    $log->debugf('Target: %s', $target);
-    $log->debugf('Params: %s', Data::Dumper::Dumper( $params ));
+    $log->debugf('Method:  %s', $method);
+    $log->debugf('URL: %s', $url);
+    $log->debugf('Headers: %s', Data::Dumper::Dumper( $headers ));
+    $log->debugf('Params:  %s', Data::Dumper::Dumper( $params ));
+    $log->debugf('Data:    %s', Data::Dumper::Dumper( $data ));
   }
 
   use Try::Tiny;
   return try {
-    my @args = $target;
-    push @args, [%{$params->{data}}] unless $method eq 'GET';
-    @args = (@args, %{$params->{headers}});
+    my @args = $url;
+    push @args, [%{$data}] unless $method eq 'GET';
+    @args = (@args, %{$headers});
 
     require HTTP::Request::Common;
     my $type = ($method eq 'PATCH') ? 'POST' : $method;

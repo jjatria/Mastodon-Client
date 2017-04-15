@@ -354,6 +354,38 @@ The use of the request methods (B<post>, B<get>, etc) is not likely to
 change, and as long as you know the endpoints you are reaching, this
 should be usable right now.
 
+=head1 METHODS
+
+=over 4
+
+=item B<get($url)>
+
+=item B<get($url, $params)>
+
+Send a GET request to the specified URL and return the deserialised response.
+C<$url> can be a L<URI> object or a string with the variable parts of the API
+endpoint (ie. not including the C<HOST/api/v1> part).
+
+Query parameters can be passed as part of the URL, or more conveniently as an
+additional hash reference, which will be added to the URL before the request
+is sent.
+
+=item B<post($url)>
+
+=item B<post($url, $data)>
+
+=item B<patch($url)>
+
+=item B<patch($url, $data)>
+
+Send a POST or PATCH request to the specified URL and return the deserialised
+response. C<$url> can be a L<URI> object or a string with the variable parts
+of the API endpoint (ie. not including the C<HOST/api/v#> part).
+
+An additional hash reference will be sent as form data.
+
+=back
+
 =head1 AUTHOR
 
 =over 4

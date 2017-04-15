@@ -119,9 +119,7 @@ sub _request {
   # $log->debugf('Target: %s', $target);
   # $log->debugf('Params: %s', Dumper($params));
 
-  use Encode qw( encode );
   use Try::Tiny;
-
   return try {
     my @args = $target;
     push @args, [%{$params->{data}}] unless $method eq 'GET';
@@ -135,8 +133,20 @@ sub _request {
     my $response = $self->user_agent->request( $request );
 
     require JSON;
-    my $data = JSON::decode_json( encode('utf8', $response->decoded_content) );
-    die $data->{error} if defined $data->{error};
+    require Encode;
+
+    my $data = JSON::decode_json(
+      Encode::encode('utf8', $response->decoded_content)
+    );
+
+    if ($self->coerce_entities) {
+      use Mastodon::Types qw( to_Entity );
+      $data = (ref $data eq 'ARRAY')
+        ? [ map { to_Entity($_) } @{$data} ]
+        : to_Entity($data);
+    }
+
+    die $data->error if ref $data eq 'Mastodon::Entity::Error';
     die $response->status_line unless $response->is_success;
 
     return $data;

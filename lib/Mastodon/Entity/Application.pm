@@ -8,7 +8,7 @@ with 'Mastodon::Role::Entity';
 use Types::Standard qw( Str );
 use Mastodon::Types qw( URI );
 
-has name     => ( is => 'ro', isa => Str );
-has website  => ( is => 'ro', isa => URI, coerce => 1, required => 1);
+has name     => ( is => 'ro', isa => Str, required => 1 );
+has website  => ( is => 'ro', isa => Maybe[URI], coerce => 1);
 
 1;

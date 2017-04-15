@@ -68,8 +68,8 @@ coerce 'Image',
 # Entity types
 
 my @entities = qw(
-  Status Account Instance Application Attachment Card Context
-  Mention Notification Relationship Report Results Error Tag
+  Status Account Instance Attachment Card Context Mention
+  Notification Relationship Report Results Error Tag Application
 );
 
 foreach my $name (@entities) {

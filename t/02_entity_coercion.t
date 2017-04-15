@@ -47,7 +47,7 @@ my $samples = {
   Report => {
     action_taken => 0,
   },
-  Result => {
+  Results => {
     hashtags => [ 'tag '],
   },
   Tag => {

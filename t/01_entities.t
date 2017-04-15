@@ -45,7 +45,7 @@ my $samples = {
   Report => {
     action_taken => 0,
   },
-  Result => {
+  Results => {
     hashtags => [ 'tag '],
   },
   Tag => {
@@ -53,42 +53,38 @@ my $samples = {
   }
 };
 
-# my ($account, $status);
-#
-# test($_) foreach qw(
-#   Account Instance Application Attachment Card Context
-#   Mention Relationship Report Result Error Tag
-# );
-#
-# $samples->{Status} = {
-#   account => $account,
-#   visibility => 'public',
-#   favourites_count => 123,
-# };
-#
-# test('Status');
-#
-# $samples->{Notification} = {
-#   status => $status,
-# };
-#
-# test('Notification');
-#
-# sub test {
-#   my $name = shift;
-#
-#   eval "use Mastodon::Entity::$name";
-#   ok my $e = "Mastodon::Entity::$name"->new($samples->{$name}),
-#     "$name constructor succeeds";
-#
-#   $account = $e if $name eq 'Account';
-#   $status  = $e if $name eq 'Status';
-#
-#   isa_ok $e, "Mastodon::Entity::$name";
-# }
+my ($account, $status);
 
-use DDP;
-use Mastodon::Entity::Notification;
-p my $x = Mastodon::Entity::Notification->new($samples->{Tag});
+test($_) foreach qw(
+  Account Instance Application Attachment Card Context
+  Mention Relationship Report Results Error Tag
+);
+
+$samples->{Status} = {
+  account => $account,
+  visibility => 'public',
+  favourites_count => 123,
+};
+
+test('Status');
+
+$samples->{Notification} = {
+  status => $status,
+};
+
+test('Notification');
+
+sub test {
+  my $name = shift;
+
+  eval "use Mastodon::Entity::$name";
+  ok my $e = "Mastodon::Entity::$name"->new($samples->{$name}),
+    "$name constructor succeeds";
+
+  $account = $e if $name eq 'Account';
+  $status  = $e if $name eq 'Status';
+
+  isa_ok $e, "Mastodon::Entity::$name";
+}
 
 done_testing();

@@ -13,7 +13,7 @@ use Mastodon::Types qw( Account DateTime Image URI );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
-  qw( Str Optional Bool Maybe Undef HashRef ArrayRef Dict slurpy );
+  qw( Int Str Optional Bool Maybe Undef HashRef ArrayRef Dict slurpy );
 
 with 'Mastodon::Role::UserAgent';
 
@@ -141,6 +141,14 @@ sub get_account {
   # Update local reference
   $self->account($data) if (scalar @_ == 1);
   return $data;
+}
+
+sub followers {
+  my $self = shift;
+  state $check = compile( Optional [Int] );
+  my ($id) = $check->(@_);
+  $id //= $self->account->{id};
+  return $self->get( "accounts/$id/followers" );
 }
 
 sub register {

@@ -107,7 +107,7 @@ sub start {
           $data = try {
             $data = JSON::decode_json( $data );
             if ($self->coerce_entities) {
-              use Mastodon::Types qw( :all );
+              use Mastodon::Types qw( to_Status );
               return to_Status($data) if $event eq 'update';
             }
             return $data;

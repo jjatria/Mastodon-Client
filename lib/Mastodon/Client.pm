@@ -9,7 +9,7 @@ our $VERSION = '0.002';
 
 use Carp;
 use Log::Any qw( $log );
-use Mastodon::Types qw( DateTime Image URI );
+use Mastodon::Types qw( Account DateTime Image URI );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
@@ -53,6 +53,16 @@ has client_secret => (
 has name => (
   is  => 'ro',
   isa => NonEmptyStr,
+);
+
+has account => (
+  is  => 'rw',
+  isa => HashRef|Account,
+  init_arg => undef,
+  lazy => 1,
+  default => sub {
+    $_[0]->get_account;
+  },
 );
 
 has scopes => (
@@ -125,7 +135,12 @@ sub get_account {
   my ($id) = $check->(@_);
   $id //= 'verify_credentials';
 
-  return $self->get("accounts/$id");
+  my $data = $self->get( "accounts/$id" );
+
+  # We fetched authenticated user account's data
+  # Update local reference
+  $self->account($data) if (scalar @_ == 1);
+  return $data;
 }
 
 sub register {

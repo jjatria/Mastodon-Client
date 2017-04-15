@@ -118,9 +118,12 @@ sub _request {
     };
   }
 
-  # $log->debugf('Method: %s', $method);
-  # $log->debugf('Target: %s', $target);
-  # $log->debugf('Params: %s', Dumper($params));
+  if ($log->is_trace) {
+    require Data::Dumper;
+    $log->debugf('Method: %s', $method);
+    $log->debugf('Target: %s', $target);
+    $log->debugf('Params: %s', Data::Dumper::Dumper( $params ));
+  }
 
   use Try::Tiny;
   return try {

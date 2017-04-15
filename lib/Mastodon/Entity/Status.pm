@@ -11,7 +11,7 @@ use Mastodon::Types qw(
 );
 
 has account => (
-  is => 'ro', isa => Account, coerce => 1
+  is => 'ro', isa => Account, coerce => 1, required => 1
 );
 
 has application => (
@@ -31,7 +31,7 @@ has favourited => (
 );
 
 has favourites_count => (
-  is => 'ro', isa => Int
+  is => 'ro', isa => Int, required => 1
 );
 
 has id => (
@@ -89,7 +89,8 @@ has url => (
 has visibility => (
   is => 'ro', isa => Enum[qw(
     public unlisted private direct
-  )]
+  )],
+  required => 1,
 );
 
 1;

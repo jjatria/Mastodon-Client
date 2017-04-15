@@ -3,6 +3,8 @@ package Mastodon::Entity::Status;
 our $VERSION = '0';
 
 use Moo;
+with 'Mastodon::Role::Entity';
+
 use Types::Standard qw( Maybe Int Str Bool ArrayRef Enum );
 use Mastodon::Types qw(
   URI Account Status DateTime Attachment Mention Tag Application

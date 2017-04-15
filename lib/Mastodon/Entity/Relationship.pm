@@ -3,6 +3,8 @@ package Mastodon::Entity::Relationship;
 our $VERSION = '0';
 
 use Moo;
+with 'Mastodon::Role::Entity';
+
 use Types::Standard qw( Bool );
 
 has blocking    => ( is => 'ro', isa => Bool );

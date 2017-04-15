@@ -3,6 +3,8 @@ package Mastodon::Entity::Mention;
 our $VERSION = '0';
 
 use Moo;
+with 'Mastodon::Role::Entity';
+
 use Types::Standard qw( Str Int );
 use Mastodon::Types qw( URI Acct );
 

@@ -3,6 +3,8 @@ package Mastodon::Entity::Context;
 our $VERSION = '0';
 
 use Moo;
+with 'Mastodon::Role::Entity';
+
 use Types::Standard qw( ArrayRef );
 use Mastodon::Types qw( Status );
 

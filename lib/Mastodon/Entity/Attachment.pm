@@ -3,6 +3,8 @@ package Mastodon::Entity::Attachment;
 our $VERSION = '0';
 
 use Moo;
+with 'Mastodon::Role::Entity';
+
 use Types::Standard qw( Maybe Enum Int Str Bool );
 use Mastodon::Types qw( Acct URI );
 

@@ -3,6 +3,8 @@ package Mastodon::Entity::Notification;
 our $VERSION = '0';
 
 use Moo;
+with 'Mastodon::Role::Entity';
+
 use Types::Standard qw( Int Enum );
 use Mastodon::Types qw( URI DateTime Account Acct );
 

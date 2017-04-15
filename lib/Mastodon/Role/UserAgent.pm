@@ -82,7 +82,8 @@ sub _build_url {
   return $url;
 }
 
-sub get   { shift->_request( get   => shift ) }
+# This is ugly. Why do I need to pass data to get?
+sub get   { shift->_request( get   => shift, data => {} ) }
 sub post  { shift->_request( post  => shift, data => @_ ) }
 sub patch { shift->_request( patch => shift, data => @_ ) }
 

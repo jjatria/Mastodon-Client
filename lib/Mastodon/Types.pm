@@ -67,16 +67,37 @@ coerce 'Image',
 
 # Entity types
 
-foreach my $name (qw(
-    Account Application Attachment Card Context Error Instance
-    Mention Notification Relationship Report Result Status Tag
-  )) {
+my @entities = qw(
+  Status Account Instance Application Attachment Card Context
+  Mention Notification Relationship Report Result Error Tag
+);
 
+foreach my $name (@entities) {
   class_type $name, { class => "Mastodon::Entity::$name" };
   coerce $name, from HashRef, via {
     eval "require Mastodon::Entity::$name";
     "Mastodon::Entity::$name"->new($_);
   };
 }
+
+role_type 'Entity', { role => 'Mastodon::Role::Entity' };
+
+coerce 'Entity',
+  from HashRef,
+    via {
+      my $hash = $_;
+      my $entity;
+
+      use Try::Tiny;
+      foreach my $name (@entities) {
+        $entity = try {
+          eval "require Mastodon::Entity::$name;";
+          "Mastodon::Entity::$name"->new($hash);
+        };
+        last if defined $entity;
+      }
+
+      return $entity;
+    };
 
 1;

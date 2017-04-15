@@ -1,4 +1,4 @@
-package Mastodon::Entity::Results;
+package Mastodon::Entity::Result;
 
 our $VERSION = '0';
 

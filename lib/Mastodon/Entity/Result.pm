@@ -5,7 +5,7 @@ our $VERSION = '0';
 use Moo;
 with 'Mastodon::Role::Entity';
 
-use Types::Standard qw( ArrayRef );
+use Types::Standard qw( Str ArrayRef );
 use Mastodon::Types qw( Account Status );
 
 has accounts => ( is => 'ro', isa => ArrayRef [Account] );

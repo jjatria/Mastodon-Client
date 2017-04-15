@@ -6,7 +6,7 @@ use Moo;
 with 'Mastodon::Role::Entity';
 
 use Types::Standard qw( Int Enum );
-use Mastodon::Types qw( URI DateTime Account Acct );
+use Mastodon::Types qw( Status URI DateTime Account Acct );
 
 has account    => ( is => 'ro', isa => Account );
 has created_at => ( is => 'ro', isa => DateTime );

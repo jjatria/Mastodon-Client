@@ -145,6 +145,13 @@ sub get_account {
   return $data;
 }
 
+sub follow {
+  my $self = shift;
+  state $check = compile(Int);
+  my ($id) = $check->(@_);
+  return $self->post( "accounts/$id/follow" );
+}
+
 sub followers {
   my $self = shift;
   state $check = compile( Optional [Int] );
@@ -266,6 +273,13 @@ sub timeline {
   $endpoint .= '?local' if $params->{local};
 
   return $self->get($endpoint);
+}
+
+sub unfollow {
+  my $self = shift;
+  state $check = compile(Int);
+  my ($id) = $check->(@_);
+  return $self->post( "accounts/$id/unfollow" );
 }
 
 sub update_account {

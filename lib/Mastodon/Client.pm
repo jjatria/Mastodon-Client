@@ -195,6 +195,20 @@ sub register {
   return $self;
 }
 
+sub statuses {
+  my $self = shift;
+  state $check = compile( Optional [HashRef|Int], Optional [HashRef]);
+  my ($id, $params) = $check->(@_);
+  if (ref $id) {
+    $params = $id;
+    $id = undef;
+  }
+  $id //= $self->account->{id};
+  $params //= {};
+
+  return $self->get( "accounts/$id/statuses", $params );
+}
+
 sub stream {
   my $self = shift;
 

@@ -17,6 +17,13 @@ use Types::Standard
 
 with 'Mastodon::Role::UserAgent';
 
+has coerce_entities => (
+  is   => 'rw',
+  isa  => Bool,
+  lazy => 1,
+  default => 0,
+);
+
 has access_token => (
   is   => 'rw',
   isa  => NonEmptyStr,
@@ -162,7 +169,6 @@ sub stream {
     slurpy Dict [
       name            => NonEmptyStr->plus_coercions( Undef, sub {'user'} ),
       tag             => Maybe [NonEmptyStr],
-      coerce_entities => Bool->plus_coercions( Undef, sub { 0 } ),
     ]
   );
 
@@ -186,7 +192,7 @@ sub stream {
   return Mastodon::Listener->new(
     url          => $endpoint,
     access_token => $self->access_token,
-    coerce_entities => $params->{coerce_entities},
+    coerce_entities => $self->coerce_entities,
   );
 }
 
@@ -261,7 +267,6 @@ Mastodon::Client - Talk to a Mastodon server
   # Streaming interface might change!
   my $listener = $client->stream(
     name            => 'public',
-    coerce_entities => 1,
   );
   $listener->on( update => sub {
     my ($listener, $status) = @_;

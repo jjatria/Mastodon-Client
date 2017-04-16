@@ -341,16 +341,6 @@ sub timeline {
   return $self->get($endpoint);
 }
 
-for my $action (qw( mute unmute block unblock follow unfollow )) {
-  no strict 'refs';
-  *{ __PACKAGE__ . "::" . $action } = sub {
-    my $self = shift;
-    state $check = compile( Int );
-    my ($id) = $check->(@_);
-    return $self->post( "accounts/$id/$action" );
-  };
-}
-
 sub update_account {
   my $self = shift;
 
@@ -365,6 +355,49 @@ sub update_account {
   my ($data) = $check->(@_);
 
   return $self->patch( 'accounts/update_credentials' => $data );
+}
+
+# POST requests with no data and a mandatory ID number
+for my $action (qw( mute unmute block unblock follow unfollow )) {
+  no strict 'refs';
+  *{ __PACKAGE__ . "::" . $action } = sub {
+    my $self = shift;
+    state $check = compile( Int );
+    my ($id) = $check->(@_);
+
+    return $self->post( "accounts/$id/$action" );
+  };
+}
+
+# GET requests with no parameters but optional parameter hashref
+for my $action (qw(
+    blocks favourites follow_requests mutes notifications reports
+  )) {
+
+  no strict 'refs';
+  *{ __PACKAGE__ . "::" . $action } = sub {
+    my $self = shift;
+    state $check = compile(Optional [HashRef]);
+    my $params = $check->(@_) // {};
+
+    return $self->get( $action, $params );
+  };
+}
+
+# GET requests with optional ID and parameter hashref
+# ID number defaults to authenticated account's ID
+for my $action (qw( following followers )) {
+  no strict 'refs';
+  *{ __PACKAGE__ . "::" . $action } = sub {
+    my $self = shift;
+    state $check = compile( Optional [Int], Optional [HashRef] );
+    my ($id, $params) = $check->(@_);
+
+    $id     //= $self->account->{id};
+    $params //= {};
+
+    return $self->get( "accounts/$id/$action", $params );
+  };
 }
 
 1;

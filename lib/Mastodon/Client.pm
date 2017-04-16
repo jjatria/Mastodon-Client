@@ -206,11 +206,6 @@ sub statuses {
   $id //= $self->account->{id};
   $params //= {};
 
-  foreach (keys %{$params}) {
-    croak $log->fatalf('%s is not a valid parameter for statuses', $_)
-      unless /^(exclude_replies|only_media)$/;
-  }
-
   return $self->get( "accounts/$id/statuses", $params );
 }
 

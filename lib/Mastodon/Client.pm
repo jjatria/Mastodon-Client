@@ -209,6 +209,24 @@ sub statuses {
   return $self->get( "accounts/$id/statuses", $params );
 }
 
+sub relationships {
+  my $self = shift;
+
+  state $check = compile( slurpy ArrayRef [Int|HashRef] );
+  my ($ids) = $check->(@_);
+  my $params = (ref $ids->[-1] eq 'HASH') ? pop(@{$ids}) : {};
+
+  croak $log->fatal('At least one ID number needed in relationships')
+    unless scalar @{$ids};
+
+  $params = {
+    id => $ids,
+    %{$params},
+  };
+
+  return $self->get( "accounts/relationships", $params );
+}
+
 sub stream {
   my $self = shift;
 

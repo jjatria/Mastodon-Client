@@ -153,6 +153,8 @@ sub _request {
     require JSON;
     require Encode;
 
+    die $response->status_line unless $response->is_success;
+
     my $data = JSON::decode_json(
       Encode::encode('utf8', $response->decoded_content)
     );
@@ -170,8 +172,6 @@ sub _request {
     elsif (ref $data eq 'HASH') {
       die $data->{error} if defined $data->{error};
     }
-
-    die $response->status_line unless $response->is_success;
 
     return $data;
   }

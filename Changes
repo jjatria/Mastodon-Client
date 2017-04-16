@@ -2,6 +2,15 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+0.003     2017-04-17 00:12:15+01:00 Europe/London
+
+  * New:
+    * Added Travis CI configuration
+  * Fixes:
+    * Added some missing dependencies to dist.ini
+
+0.002     2017-04-16 23:06:52+01:00 Europe/London
+
   * New:
     * Added convenience methods for all API endpoints
     * Added a `coerce_entities` option to turn JSON responses from

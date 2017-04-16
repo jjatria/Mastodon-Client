@@ -357,7 +357,7 @@ sub stream {
     if $params->{name} !~ /(user|public)/;
 
   my $endpoint
-    = $self->instance
+    = $self->instance->uri
     . '/api/v'
     . $self->api_version
     . '/streaming/'
@@ -368,9 +368,10 @@ sub stream {
 
   use Mastodon::Listener;
   return Mastodon::Listener->new(
-    url          => $endpoint,
-    access_token => $self->access_token,
+    url             => $endpoint,
+    access_token    => $self->access_token,
     coerce_entities => $self->coerce_entities,
+    ua              => $self->user_agent,
   );
 }
 

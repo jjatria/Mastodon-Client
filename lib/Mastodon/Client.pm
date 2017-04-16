@@ -13,6 +13,7 @@ use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
   qw( Int Str Optional Bool Maybe Undef HashRef ArrayRef Dict slurpy );
+use Types::Path::Tiny qw( File );
 
 use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
@@ -339,6 +340,20 @@ sub timeline {
   $endpoint .= '?local' if $params->{local};
 
   return $self->get($endpoint);
+}
+
+sub upload_media {
+  my $self = shift;
+
+  state $check = compile(
+    File->plus_coercions( Str, sub { Path::Tiny::path($_) } )
+  );
+  my ($file) = $check->(@_);
+
+  return $self->post( 'media' =>
+    { file => [ $file, undef ] },
+    headers => { Content_Type => 'form-data' },
+  );
 }
 
 sub update_account {

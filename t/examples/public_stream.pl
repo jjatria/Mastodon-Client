@@ -18,7 +18,7 @@ my $app = Mastodon::Client->new({
   coerce_entities => 1,
 });
 
-my $listener = $app->stream( name => 'public' );
+my $listener = $app->stream( 'public' );
 
 $listener->on( update => sub {
   my ($listener, $status) = @_;

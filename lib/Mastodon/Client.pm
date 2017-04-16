@@ -227,6 +227,21 @@ sub relationships {
   return $self->get( "accounts/relationships", $params );
 }
 
+sub search {
+  my $self = shift;
+
+  state $check = compile( Str, Optional [HashRef] );
+  my ($query, $params) = $check->(@_);
+  $params //= {};
+
+  $params = {
+    'q' => $query,
+    %{$params},
+  };
+
+  return $self->get( "accounts/search", $params );
+}
+
 sub stream {
   my $self = shift;
 

@@ -287,8 +287,8 @@ sub stream {
 
   state $check = compile(
     slurpy Dict [
-      name            => NonEmptyStr->plus_coercions( Undef, sub {'user'} ),
-      tag             => Maybe [NonEmptyStr],
+      name => NonEmptyStr->plus_coercions( Undef, sub {'user'} ),
+      tag  => Maybe [NonEmptyStr],
     ]
   );
 

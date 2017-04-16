@@ -564,21 +564,703 @@ The use of the request methods (B<post>, B<get>, etc) is not likely to
 change, and as long as you know the endpoints you are reaching, this
 should be usable right now.
 
-=head1 METHODS
+=head1 ATTRIBUTES
 
 =over 4
+
+=item B<instance>
+
+A Mastodon::Entity::Instance object representing the instance to which this
+client will speak. Defaults to C<mastodon.social>.
+
+=item B<api_version>
+
+An integer specifying the version of the API endpoints to use. Defaults to C<1>.
+
+=item B<redirect_uri>
+
+The URI to which authorization codes should be forwarded as part of the OAuth2
+flow. Defaults to C<urn:ietf:wg:oauth:2.0:oob> (meaning no redirection).
+
+=item B<user_agent>
+
+The user agent to use for the requests. Defaults to an instance of
+L<LWP::UserAgent>. It is expected to have a C<request> method that accepts
+instances of L<HTTP::Request> objects.
+
+=item B<coerce_entities>
+
+A boolean value. Set to true if you want Mastodon::Client to internally coerce
+all response entities to objects. This adds a level of validation, and can
+make the objects easier to use.
+
+Although this does require some additional processing, the coercion is done by
+L<Type::Tiny>, so the impact is negligible.
+
+For now, it defaults to B<false> (but this will likely change, so I recommend
+you use it).
+
+=item B<access_token>
+
+The access token of your client. This is provided by the Mastodon API and is
+used for the OAuth2 authentication required for most API calls.
+
+You can get this by calling B<authorize> with either an access code or your
+account's username and password.
+
+=item B<authorized>
+
+Initially undefined, once your client has been authorized this will be set to
+a L<DateTime> object representing when authorization was given.
+
+=item B<client_id>
+
+=item B<client_secret>
+
+The client ID and secret are provided by the Mastodon API when you register
+your client using the B<register> method. They are used to identify where your
+calls are coming from, and are required before you can use the B<authorize>
+method to get the access token.
+
+=item B<name>
+
+Your client's name. This is required when registering, but is otherwise seldom
+used. If you are using the B<authorization_url> to get an access code from your
+users, then they will see this name when they go to that page.
+
+=item B<account>
+
+Holds the authenticated account. It is set internally by the B<get_account>
+method.
+
+=item B<scopes>
+
+This array reference holds the scopes set by you for the client. These are
+required when registering your client with the Mastodon instance. Defaults to
+C<read>.
+
+Mastodon::Client will internally make sure that the scopes you were provided
+when calling B<authorize> match those that you requested. If this is not the
+case, it will helpfully die.
+
+=item B<website>
+
+The URL of a human-readable website for the client. If made available, it
+appears as a link in the "authorized applications" tab of the user preferences
+in the default Mastodon web GUI. Defaults to the empty string.
+
+=back
+
+=head1 METHODS
+
+Methods listed here follow the order of those in the official API
+documentation.
+
+=head2 Accounts
+
+=over 4
+
+=item B<get_account()>
+
+=item B<get_account($id)>
+
+=item B<get_account($params)>
+
+=item B<get_account($id, $params)>
+
+Fetches an account by ID. If no ID is provided, this defaults to the current
+authenticated account. Global GET parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, it returns a
+Mastodon::Entity::Account object, or a plain hash reference.
+
+=item B<update_account($params)>
+
+Make changes to the authenticated account. Takes a hash reference with the
+following possible keys:
+
+=over 4
+
+=item B<display_name>
+
+=item B<note>
+
+Strings
+
+=item B<avatar>
+
+=item B<header>
+
+A base64 encoded image, or the name of a file to be encoded.
+
+=back
+
+Depending on the value of C<coerce_entities>, returns the modified
+Mastodon::Entity::Account object, or a plain hash reference.
+
+=item B<followers()>
+
+=item B<followers($id)>
+
+=item B<followers($params)>
+
+=item B<followers($id, $params)>
+
+Get the list of followers of an account by ID. If no ID is provided, the one
+for the current authenticated account is used. Global GET parameters are
+available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Account objects, or a plain array reference.
+
+=item B<following()>
+
+=item B<following($id)>
+
+=item B<following($params)>
+
+=item B<following($id, $params)>
+
+Get the list of accounts followed by the account specified by ID. If no ID is
+provided, the one for the current authenticated account is used. Global GET
+parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Account objects, or a plain array reference.
+
+=item B<statuses()>
+
+=item B<statuses($id)>
+
+=item B<statuses($params)>
+
+=item B<statuses($id, $params)>
+
+Get a list of statuses from the account specified by ID. If no ID is
+provided, the one for the current authenticated account is used.
+
+In addition to the global GET parameters, this method accepts the following
+parameters:
+
+=over 4
+
+=item B<only_media>
+
+=item B<exclude_replies>
+
+Both boolean.
+
+=back
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Status objects, or a plain array reference.
+
+=item B<follow($id)>
+
+=item B<unfollow($id)>
+
+Follow or unfollow an account specified by ID. The ID argument is mandatory.
+
+Depending on the value of C<coerce_entities>, returns the new
+Mastodon::Entity::Relationship object, or a plain hash reference.
+
+=item B<block($id)>
+
+=item B<unblock($id)>
+
+Block or unblock an account specified by ID. The ID argument is mandatory.
+
+Depending on the value of C<coerce_entities>, returns the new
+Mastodon::Entity::Relationship object, or a plain hash reference.
+
+=item B<mute($id)>
+
+=item B<unmute($id)>
+
+Mute or unmute an account specified by ID. The ID argument is mandatory.
+
+Depending on the value of C<coerce_entities>, returns the new
+Mastodon::Entity::Relationship object, or a plain hash reference.
+
+=item B<relationships(@ids)>
+
+=item B<relationships(@ids, $params)>
+
+Get the list of relationships of the current authenticated user with the
+accounts specified by ID. At least one ID is required, but more can be passed
+at once. Global GET parameters are available for this method, and can be passed
+as an additional hash reference as a final argument.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Relationship objects, or a plain array reference.
+
+=item B<search_accounts($query)>
+
+=item B<search_accounts($query, $params)>
+
+Search for accounts. Takes a mandatory string argument to use as the search
+query. If the search query is of the form C<username@domain>, the accounts
+will be searched remotely.
+
+In addition to the global GET parameters, this method accepts the following
+parameters:
+
+=over 4
+
+=item B<limit>
+
+The maximum number of matches. Defaults to 40.
+
+=back
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Account objects, or a plain array reference.
+
+=back
+
+=head2 Apps
+
+=over 4
+
+=item B<register()>
+
+=item B<register($data)>
+
+Obtain a client secret and ID from a given mastodon instance. Takes a single
+hash reference as an argument, with the following possible keys:
+
+=over 4
+
+=item B<redirect_uris>
+
+The URL to which authorization codes should be forwarded after authorized by
+the user. Defaults to the value of the B<redirect_uri> attribute.
+
+=item B<scopes>
+
+The scopes requested by this client. Defaults to the value of the B<scopes>
+attribute.
+
+=item B<website>
+
+The client's website. Defaults to the value of the C<website> attribute.
+
+=back
+
+When successful, sets the C<client_secret> and C<client_id> attributes of
+the Mastodon::Client object and returns the modified object.
+
+This should be called B<once> per client and its contents cached locally.
+
+=back
+
+=head2 Blocks
+
+=over 4
+
+=item B<blocks()>
+
+=item B<blocks($params)>
+
+Get the list of accounts blocked by the authenticated user. Global GET
+parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Account objects, or a plain array reference.
+
+=back
+
+=head2 Favourites
+
+=over 4
+
+=item B<favourites()>
+
+=item B<favourites($params)>
+
+Get the list of statuses favourited by the authenticated user. Global GET
+parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Status objects, or a plain array reference.
+
+=back
+
+=head2 Follow requests
+
+=over 4
+
+=item B<follow_requests()>
+
+=item B<follow_requests($params)>
+
+Get the list of accounts requesting to follow the the authenticated user.
+Global GET parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Account objects, or a plain array reference.
+
+=item B<authorize_follow($id)>
+
+=item B<reject_follow($id)>
+
+Accept or reject the follow request by the account of the specified ID. The ID
+argument is mandatory.
+
+Returns an empty object.
+
+=back
+
+=head2 Follows
+
+=over 4
+
+=item B<remote_follow($acct)>
+
+Follow a remote user by account string (ie. C<username@domain>). The argument
+is mandatory.
+
+Depending on the value of C<coerce_entities>, returns an
+Mastodon::Entity::Account object, or a plain hash reference with the local
+representation of the specified account.
+
+=back
+
+=head2 Instances
+
+=over 4
+
+=item B<fetch_instance()>
+
+Fetches the latest information for the current instance the client is talking
+to. When successful, this method updates the value of the C<instance>
+attribute.
+
+Depending on the value of C<coerce_entities>, returns an
+Mastodon::Entity::Instance object, or a plain hash reference.
+
+This method does not require authentication.
+
+=back
+
+=head2 Media
+
+=over 4
+
+=item B<upload_media($file)>
+
+Upload a file as an attachment. Takes a single argument with the name of a
+local file to encode and upload. The argument is mandatory.
+
+Depending on the value of C<coerce_entities>, returns an
+Mastodon::Entity::Attachment object, or a plain hash reference.
+
+The returned object's ID can be passed to the B<post_status> to post it to a
+timeline.
+
+=back
+
+=head2 Mutes
+
+=over 4
+
+=item B<mutes()>
+
+=item B<mutes($params)>
+
+Get the list of accounts muted by the authenticated user. Global GET
+parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Account objects, or a plain array reference.
+
+=back
+
+=head2 Notifications
+
+=over 4
+
+=item B<notifications()>
+
+=item B<notifications($params)>
+
+Get the list of notifications for the authenticated user. Global GET
+parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Notification objects, or a plain array reference.
+
+=item B<get_notification($id)>
+
+Get a notification by ID. The argument is mandatory.
+
+Depending on the value of C<coerce_entities>, returns an
+Mastodon::Entity::Notification object, or a plain hash reference.
+
+=item B<clear_notifications()>
+
+Clears all notifications for the authenticated user.
+
+This method takes no arguments and returns an empty object.
+
+=back
+
+=head2 Reports
+
+=over 4
+
+=item B<reports()>
+
+=item B<reports($params)>
+
+Get a list of reports made by the authenticated user. Global GET
+parameters are available for this method.
+
+Depending on the value of C<coerce_entities>, returns an array reference of
+Mastodon::Entity::Report objects, or a plain array reference.
+
+=item B<report($params)>
+
+Report a user or status. Takes a mandatory hash with the following keys:
+
+=over 4
+
+=item B<account_id>
+
+The ID of a single account to report.
+
+=item B<status_ids>
+
+The ID of a single status to report, or an array reference of statuses to
+report.
+
+=item B<comment>
+
+An optional string.
+
+=back
+
+While the comment is always optional, either the B<account_id> or the list of
+B<status_ids> must be present.
+
+Depending on the value of C<coerce_entities>, returns the new
+Mastodon::Entity::Report object, or a plain hash reference.
+
+=back
+
+=head2 Search
+
+=over 4
+
+=item B<search($query)>
+
+=item B<search($query, $params)>
+
+Search for content. Takes a mandatory string argument to use as the search
+query. If the search query is a URL, Mastodon will attempt to fetch the
+provided account or status. Otherwise, it will do a local account and hashtag
+search.
+
+In addition to the global GET parameters, this method accepts the following
+parameters:
+
+=over 4
+
+=item B<resolve>
+
+Whether to resolve non-local accounts.
+
+=back
+
+=back
+
+=head2 Statuses
+
+=over 4
+
+=item B<get_status($id)>
+
+=item B<get_status($id, $params)>
+
+Fetches a status by ID. The ID argument is mandatory. Global GET parameters are available for this method as an additional hash reference.
+
+Depending on the value of C<coerce_entities>, it returns a
+Mastodon::Entity::Status object, or a plain hash reference.
+
+=item B<get_status_context($id)>
+
+=item B<get_status_context($id, $params)>
+
+Fetches the context of a status by ID. The ID argument is mandatory. Global GET parameters are available for this method as an additional hash reference.
+
+Depending on the value of C<coerce_entities>, it returns a
+Mastodon::Entity::Context object, or a plain hash reference.
+
+=item B<get_status_card($id)>
+
+=item B<get_status_card($id, $params)>
+
+Fetches a card associated to a status by ID. The ID argument is mandatory.
+Global GET parameters are available for this method as an additional hash
+reference.
+
+Depending on the value of C<coerce_entities>, it returns a
+Mastodon::Entity::Card object, or a plain hash reference.
+
+=item B<get_status_reblogs($id)>
+
+=item B<get_status_reblogs($id, $params)>
+
+=item B<get_status_favourites($id)>
+
+=item B<get_status_favourites($id, $params)>
+
+Fetches a list of accounts who have reblogged or favourited a status by ID.
+The ID argument is mandatory. Global GET parameters are available for this
+method as an additional hash reference.
+
+Depending on the value of C<coerce_entities>, it returns an array reference of
+Mastodon::Entity::Account objects, or a plain array reference.
+
+=item B<post_status($text)>
+
+=item B<post_status($text, $params)>
+
+Posts a new status. Takes a mandatory string as the content of the status
+(which can be the empty string), and an optional hash reference with the
+following additional parameters:
+
+=over 4
+
+=item B<status>
+
+The content of the status, as a string. Since this is already provided as the
+first argument of the method, this is not necessary. But if provided, this
+value will overwrite that of the first argument.
+
+=item B<in_reply_to_id>
+
+The optional ID of a status to reply to.
+
+=item B<media_ids>
+
+An array reference of up to four media IDs. These can be obtained as the result
+of a call to B<upload_media()>.
+
+=item B<sensitive>
+
+Boolean, to mark status content as NSFW.
+
+=item B<spoiler_text>
+
+A string, to be shown as a warning before the actual content.
+
+=item B<visibility>
+
+A string; one of C<direct>, C<private>, C<unlisted>, or C<public>.
+
+=back
+
+Depending on the value of C<coerce_entities>, it returns the new
+Mastodon::Entity::Status object, or a plain hash reference.
+
+=item B<delete_status($id)>
+
+Delete a status by ID. The ID is mandatory. Returns an empty object.
+
+=item B<reblog($id)>
+
+=item B<unreblog($id)>
+
+=item B<favourite($id)>
+
+=item B<unfavourite($id)>
+
+Reblog or favourite a status by ID, or revert this action. The ID argument is
+mandatory.
+
+Depending on the value of C<coerce_entities>, it returns the specified
+Mastodon::Entity::Status object, or a plain hash reference.
+
+=back
+
+=head2 Timelines
+
+=over 4
+
+=item B<timeline($query)>
+
+=item B<timeline($query, $params)>
+
+Retrieves a timeline. The first argument defines either the name of a timeline
+(which can be one of C<home> or C<public>), or a hashtag (if it begins with the
+C<#> character). This argument is mandatory.
+
+In addition to the global GET parameters, this method accepts the following
+parameters:
+
+=over 4
+
+=item B<local>
+
+Boolean. If true, limits results only to those originating from the current
+instance. Only applies to public and tag timelines.
+
+=back
+
+Depending on the value of C<coerce_entities>, it returns an array of
+Mastodon::Entity::Status objects, or a plain array reference. The more recent
+statuses come first.
+
+=back
+
+=head1 STREAMING RESULTS
+
+Alternatively, it is possible to use the streaming API to get a constant stream
+of updates. To do this, there is the B<stream()> method.
+
+=over 4
+
+=item B<stream($query)>
+
+Creates a Mastodon::Listener object which will fetch a stream for the
+specified query. Possible values for the query are either C<user>, for events
+that are relevant to the authorized user; C<public>, for all public statuses;
+or a tag (if it begins with the C<#> character), for all public statuses for
+the particular tag.
+
+For more details on how to use this object, see the documentation for
+L<Mastodon::Listener>.
+
+=back
+
+=head1 REQUEST METHODS
+
+Mastodon::Client uses four lower-level request methods to contact the API
+with GET, POST, PATCH, and DELETE requests. These are left available in case
+one of the higher-level convenience methods are unsuitable or undesirable, but
+you use them at your own risk.
+
+They all take a URL as their first parameter, which can be a string with the
+API endpoint to contact, or a L<URI> object, which will be used as-is.
+
+If passed as a string, the methods expect one that contains only the variable
+parts of the endpoint (ie. not including the C<HOST/api/v1> part). The
+remaining parts will be filled-in appropriately internally.
+
+=over 4
+
+=item B<delete($url)>
 
 =item B<get($url)>
 
 =item B<get($url, $params)>
 
-Send a GET request to the specified URL and return the deserialised response.
-C<$url> can be a L<URI> object or a string with the variable parts of the API
-endpoint (ie. not including the C<HOST/api/v1> part).
-
-Query parameters can be passed as part of the URL, or more conveniently as an
-additional hash reference, which will be added to the URL before the request
-is sent.
+Query parameters can be passed as part of the L<URI> object, but it is not
+recommended you do so, since Mastodon has expectations for array parameters
+that do not meet those of eg. L<URI::QueryParam>. It will be easier and safer
+if any additional parameters are passed as a hash reference, which will be
+added to the URL before the request is sent.
 
 =item B<post($url)>
 
@@ -588,11 +1270,10 @@ is sent.
 
 =item B<patch($url, $data)>
 
-Send a POST or PATCH request to the specified URL and return the deserialised
-response. C<$url> can be a L<URI> object or a string with the variable parts
-of the API endpoint (ie. not including the C<HOST/api/v#> part).
-
-An additional hash reference will be sent as form data.
+the C<post> and C<patch> methods work similarly to C<get> and C<delete>, but
+the optional hash reference is sent in as form data, instead of processed as
+query parameters. The Mastodon API does not use query parameters on POST or
+PATCH endpoints.
 
 =back
 

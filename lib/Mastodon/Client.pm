@@ -527,11 +527,12 @@ Mastodon::Client - Talk to a Mastodon server
   use Mastodon::Client;
 
   my $client = Mastodon::Client->new(
-    instance      => 'mastodon.social',
-    name          => 'PerlBot',
-    client_id     => $client_id,
-    client_secret => $client_secret,
-    access_token  => $access_token,
+    instance        => 'mastodon.social',
+    name            => 'PerlBot',
+    client_id       => $client_id,
+    client_secret   => $client_secret,
+    access_token    => $access_token,
+    coerce_entities => 1,
   );
 
   $client->post( statuses => {
@@ -541,7 +542,7 @@ Mastodon::Client - Talk to a Mastodon server
 
   # Streaming interface might change!
   my $listener = $client->stream(
-    name            => 'public',
+    name => 'public',
   );
   $listener->on( update => sub {
     my ($listener, $status) = @_;

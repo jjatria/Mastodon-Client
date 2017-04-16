@@ -58,6 +58,13 @@ has name => (
   isa => NonEmptyStr,
 );
 
+has website => (
+  is  => 'ro',
+  isa => Str,
+  lazy => 1,
+  default => '',
+);
+
 has account => (
   is  => 'rw',
   isa => HashRef|Account,
@@ -242,7 +249,7 @@ sub register {
         Str->plus_coercions( Undef, sub { $self->redirect_uri } ),
       scopes =>
         ArrayRef->plus_coercions( Undef, sub { $self->scopes } ),
-      website => Str->plus_coercions( Undef, sub {''} ),
+      website => Str->plus_coercions( Undef, sub { $self->website } ),
     ]
   );
   my ($params) = $check->(@_);

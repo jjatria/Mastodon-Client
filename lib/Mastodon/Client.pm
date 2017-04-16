@@ -140,6 +140,30 @@ sub authorize_follow {
   return $self->post( 'follow_requests/authorize' => { id => $id } );
 }
 
+# Clears notifications
+sub clear_notifications {
+  my $self = shift;
+  state $check = compile();
+  $check->(@_);
+
+  return $self->post( 'notifications/clear' );
+}
+
+# Delete a status by ID
+sub delete_status {
+  my $self = shift;
+
+  state $check = compile( Int );
+  my ($id) = $check->(@_);
+
+  return $self->delete( "statuses/$id" );
+}
+
+sub fetch_instance {
+  my $self = shift;
+  $self->instance($self->get( 'instance' ));
+}
+
 sub get_account {
   my $self = shift;
   state $check = compile( Optional [Str] );
@@ -154,20 +178,53 @@ sub get_account {
   return $data;
 }
 
-sub followers {
+# Get a single notification by ID
+sub get_notification {
   my $self = shift;
-  state $check = compile( Optional [Int] );
+  state $check = compile( Int );
   my ($id) = $check->(@_);
-  $id //= $self->account->{id};
-  return $self->get( "accounts/$id/followers" );
+
+  return $self->get( "notifications/$id" );
 }
 
-sub following {
+# Get a single status by ID
+sub get_status {
   my $self = shift;
-  state $check = compile( Optional [Int] );
+  state $check = compile( Int );
   my ($id) = $check->(@_);
-  $id //= $self->account->{id};
-  return $self->get( "accounts/$id/following" );
+
+  return $self->get( "statuses/$id" );
+}
+
+# Post a status
+sub post_status {
+  my $self = shift;
+  state $check = compile( Str|HashRef, Optional[HashRef]);
+  my ($text, $params) = $check->(@_);
+  $params //= {};
+
+  my $payload;
+  if (ref $text eq 'HASH') {
+    $params = $text;
+    croak $log->fatal('Post must contain a (possibly empty) status text')
+      unless defined $params->{status};
+    $payload = $params;
+  }
+  else {
+    $payload = { status => $text, %{$params} };
+  }
+
+  return $self->post( 'statuses', $payload);
+}
+
+# Delete a status by ID
+sub reblog_status {
+  my $self = shift;
+
+  state $check = compile( Int );
+  my ($id) = $check->(@_);
+
+  return $self->delete( "statuses/$id/reblog" );
 }
 
 sub register {
@@ -342,20 +399,6 @@ sub timeline {
   return $self->get($endpoint);
 }
 
-sub upload_media {
-  my $self = shift;
-
-  state $check = compile(
-    File->plus_coercions( Str, sub { Path::Tiny::path($_) } )
-  );
-  my ($file) = $check->(@_);
-
-  return $self->post( 'media' =>
-    { file => [ $file, undef ] },
-    headers => { Content_Type => 'form-data' },
-  );
-}
-
 sub update_account {
   my $self = shift;
 
@@ -372,16 +415,40 @@ sub update_account {
   return $self->patch( 'accounts/update_credentials' => $data );
 }
 
-# POST requests with no data and a mandatory ID number
-for my $action (qw( mute unmute block unblock follow unfollow )) {
-  no strict 'refs';
-  *{ __PACKAGE__ . "::" . $action } = sub {
-    my $self = shift;
-    state $check = compile( Int );
-    my ($id) = $check->(@_);
+sub upload_media {
+  my $self = shift;
 
-    return $self->post( "accounts/$id/$action" );
-  };
+  state $check = compile(
+    File->plus_coercions( Str, sub { Path::Tiny::path($_) } )
+  );
+  my ($file) = $check->(@_);
+
+  return $self->post( 'media' =>
+    { file => [ $file, undef ] },
+    headers => { Content_Type => 'form-data' },
+  );
+}
+
+# POST requests with no data and a mandatory ID number
+foreach my $pair ([
+    [ statuses => [qw( reblog unreblog favourite unfavourite     )] ],
+    [ accounts => [qw( mute unmute block unblock follow unfollow )] ],
+  ]) {
+
+  my ($base, $endpoints) = @{$pair};
+
+  foreach my $endpoint (@{$endpoints}) {
+    my $method = ($base eq 'statuses') ? $endpoint . '_status' : $endpoint;
+
+    no strict 'refs';
+    *{ __PACKAGE__ . "::" . $method } = sub {
+      my $self = shift;
+      state $check = compile( Int );
+      my ($id) = $check->(@_);
+
+      return $self->post( "$base/$id/$endpoint" );
+    };
+  }
 }
 
 # GET requests with no parameters but optional parameter hashref
@@ -412,6 +479,26 @@ for my $action (qw( following followers )) {
     $params //= {};
 
     return $self->get( "accounts/$id/$action", $params );
+  };
+}
+
+# GET requests for status details
+foreach my $pair ([
+    [ get_status_context    => 'context'       ],
+    [ get_status_card       => 'card'          ],
+    [ get_status_reblogs    => 'reblogged_by'  ],
+    [ get_status_favourites => 'favourited_by' ],
+  ]) {
+
+  my ($method, $endpoint) = @{$pair};
+
+  no strict 'refs';
+  *{ __PACKAGE__ . "::" . $method } = sub {
+    my $self = shift;
+    state $check = compile( Int );
+    my ($id) = $check->(@_);
+
+    return $self->get( "statuses/$id/$endpoint" );
   };
 }
 

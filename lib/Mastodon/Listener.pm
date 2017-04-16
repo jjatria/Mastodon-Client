@@ -12,7 +12,7 @@ use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
 
 # my $app = Mastodon::Client->new( $config->{_} );
-# my $listener = $app->stream( name => 'public' );
+# my $listener = $app->stream( 'public' );
 #
 # $listener->on( update => sub {
 #   my ($listener, $msg) = @_;
@@ -154,9 +154,7 @@ Mastodon::Listener - Access the streaming API of a Mastodon server
   })
 
   # Streaming interface might change!
-  my $listener = $client->stream(
-    name => 'public',
-  );
+  my $listener = $client->stream( 'public' );
   $listener->on( update => sub {
     my ($listener, $status) = @_;
     printf "%s said: %s\n",

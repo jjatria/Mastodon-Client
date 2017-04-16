@@ -9,6 +9,7 @@ Revision history for Mastodon::Client
     * Added more tests (suite is still far from complete!)
     * Added methods for sending DELETE and PATCH requests
     * Added this change log. :)
+    * Several changes to dist.ini add repository data, META.json, etc.
   * Fixes:
     * Fixed several issues with passing arguments to requst functions
 

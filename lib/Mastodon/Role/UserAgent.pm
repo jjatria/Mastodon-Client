@@ -67,9 +67,10 @@ sub authorization_url {
   return $uri;
 }
 
-sub post  { shift->_request( post  => shift, data   => shift, @_ ) }
-sub patch { shift->_request( patch => shift, data   => shift, @_ ) }
-sub get   { shift->_request( get   => shift, params => shift, @_ ) }
+sub post   { shift->_request( post   => shift, data   => shift, @_ ) }
+sub patch  { shift->_request( patch  => shift, data   => shift, @_ ) }
+sub get    { shift->_request( get    => shift, params => shift, @_ ) }
+sub delete { shift->_request( delete => shift, params => shift, @_ ) }
 
 sub _build_url {
   my $self = shift;

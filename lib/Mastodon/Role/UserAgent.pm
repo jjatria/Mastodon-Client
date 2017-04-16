@@ -1,6 +1,6 @@
 package Mastodon::Role::UserAgent;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 use v5.10.0;
 use Moo::Role;

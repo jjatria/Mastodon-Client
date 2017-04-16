@@ -1,6 +1,6 @@
 package Mastodon::Entity::Relationship;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 use Moo;
 with 'Mastodon::Role::Entity';

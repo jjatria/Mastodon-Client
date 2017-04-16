@@ -17,19 +17,24 @@ my %WriteMakefileArgs = (
   "NAME" => "Mastodon::Client",
   "PREREQ_PM" => {
     "AnyEvent::Emitter" => "0.02",
+    "DateTime" => "1.42",
     "LWP::UserAgent" => "6.25",
+    "List::Util" => "1.47",
     "Log::Any" => "1.049",
     "Moo" => "2.003002",
     "Try::Tiny" => "0.28",
     "Type::Params" => "1.000006",
-    "Types::Common::String" => 0,
-    "Types::Standard" => 0,
+    "Types::Common::String" => "1.000006",
+    "Types::Path::Tiny" => "0.005",
+    "Types::Standard" => "1.000006",
     "URI" => "1.71"
   },
   "TEST_REQUIRES" => {
-    "Test::Roo" => 0
+    "Test::Exception" => "0.043",
+    "Test::More" => "1.302078",
+    "Test::Warnings" => "0.026"
   },
-  "VERSION" => "0.002",
+  "VERSION" => "0.003",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -38,14 +43,19 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "AnyEvent::Emitter" => "0.02",
+  "DateTime" => "1.42",
   "LWP::UserAgent" => "6.25",
+  "List::Util" => "1.47",
   "Log::Any" => "1.049",
   "Moo" => "2.003002",
-  "Test::Roo" => 0,
+  "Test::Exception" => "0.043",
+  "Test::More" => "1.302078",
+  "Test::Warnings" => "0.026",
   "Try::Tiny" => "0.28",
   "Type::Params" => "1.000006",
-  "Types::Common::String" => 0,
-  "Types::Standard" => 0,
+  "Types::Common::String" => "1.000006",
+  "Types::Path::Tiny" => "0.005",
+  "Types::Standard" => "1.000006",
   "URI" => "1.71"
 );
 

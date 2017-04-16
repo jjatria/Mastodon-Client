@@ -173,9 +173,12 @@ sub fetch_instance {
 
 sub get_account {
   my $self = shift;
-  state $check = compile( Optional [Str] );
-  my ($id) = $check->(@_);
-  $id //= 'verify_credentials';
+
+  state $check = compile( Optional [Int], Optional [HashRef] );
+  my ($id, $params) = $check->(@_);
+
+  $id     //= 'verify_credentials';
+  $params //= {};
 
   my $data = $self->get( "accounts/$id" );
 
@@ -344,33 +347,38 @@ sub search {
     %{$params},
   };
 
+  return $self->get( "search", $params );
+}
+
+sub search_accounts {
+  my $self = shift;
+
+  state $check = compile( Str, Optional [HashRef] );
+  my ($query, $params) = $check->(@_);
+  $params //= {};
+
+  $params = {
+    'q' => $query,
+    %{$params},
+  };
+
   return $self->get( "accounts/search", $params );
 }
 
 sub stream {
   my $self = shift;
 
-  state $check = compile(
-    slurpy Dict [
-      name => NonEmptyStr->plus_coercions( Undef, sub {'user'} ),
-      tag  => Maybe [NonEmptyStr],
-    ]
-  );
-
-  my ($params) = $check->(@_);
-
-  croak $log->fatalf( '"%s" is not a known timeline name"',
-    $params->{name} )
-    if $params->{name} !~ /(user|public)/;
+  state $check = compile( NonEmptyStr );
+  my ($query) = $check->(@_);
 
   my $endpoint
     = $self->instance->uri
     . '/api/v'
     . $self->api_version
     . '/streaming/'
-    . (( defined $params->{tag} and $params->{tag} )
-        ? ( 'hashtag?' . $params->{tag} )
-        : $params->{name}
+    . (( $query =~ /^#/ )
+        ? ( 'hashtag?' . $query )
+        : $query
       );
 
   use Mastodon::Listener;
@@ -385,26 +393,15 @@ sub stream {
 sub timeline {
   my $self = shift;
 
-  state $check = compile(
-    slurpy Dict [
-      name  => NonEmptyStr->plus_coercions( Undef, sub {'home'} ),
-      local => Bool->plus_coercions( Undef,    sub {0} ),
-      tag   => Maybe [NonEmptyStr],
-    ]
-  );
-  my ($params) = $check->(@_);
-
-  croak $log->fatalf( '"%s" is not a known timeline name"',
-    $params->{name} )
-    if $params->{name} !~ /(home|public)/;
+  state $check = compile( NonEmptyStr, Optional [HashRef] );
+  my ($query, $params) = $check->(@_);
 
   my $endpoint
-    = ( defined $params->{tag} )
-    ? 'timelines/tag/' . $params->{tag}
-    : 'timelines/' . $params->{name};
-  $endpoint .= '?local' if $params->{local};
+    = ( $query =~ /^#/ )
+    ? 'timelines/tag/' . $query
+    : 'timelines/'     . $query;
 
-  return $self->get($endpoint);
+  return $self->get($endpoint, $params);
 }
 
 sub update_account {
@@ -480,8 +477,13 @@ for my $action (qw( following followers )) {
   no strict 'refs';
   *{ __PACKAGE__ . "::" . $action } = sub {
     my $self = shift;
-    state $check = compile( Optional [Int], Optional [HashRef] );
+    state $check = compile( Optional [Int|HashRef], Optional [HashRef] );
     my ($id, $params) = $check->(@_);
+
+    if (ref $id eq 'HASH') {
+      $params = $id;
+      $id = undef;
+    }
 
     $id     //= $self->account->{id};
     $params //= {};

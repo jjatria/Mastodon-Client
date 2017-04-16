@@ -145,13 +145,6 @@ sub get_account {
   return $data;
 }
 
-sub follow {
-  my $self = shift;
-  state $check = compile(Int);
-  my ($id) = $check->(@_);
-  return $self->post( "accounts/$id/follow" );
-}
-
 sub followers {
   my $self = shift;
   state $check = compile( Optional [Int] );
@@ -280,11 +273,14 @@ sub timeline {
   return $self->get($endpoint);
 }
 
-sub unfollow {
-  my $self = shift;
-  state $check = compile(Int);
-  my ($id) = $check->(@_);
-  return $self->post( "accounts/$id/unfollow" );
+for my $action (qw( mute unmute block unblock follow unfollow )) {
+  no strict 'refs';
+  *{ __PACKAGE__ . "::" . $action } = sub {
+    my $self = shift;
+    state $check = compile( Int );
+    my ($id) = $check->(@_);
+    return $self->post( "accounts/$id/$action" );
+  };
 }
 
 sub update_account {

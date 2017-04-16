@@ -8,7 +8,7 @@ use v5.10.0;
 our $VERSION = '0.002';
 
 use Carp;
-use Mastodon::Types qw( Account DateTime Image URI );
+use Mastodon::Types qw( Acct Account DateTime Image URI );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
@@ -131,6 +131,14 @@ sub authorize {
   return $self;
 }
 
+# Authorize follow requests by account ID
+sub authorize_follow {
+  my $self = shift;
+  state $check = compile( Int );
+  my ($id) = $check->(@_);
+  return $self->post( 'follow_requests/authorize' => { id => $id } );
+}
+
 sub get_account {
   my $self = shift;
   state $check = compile( Optional [Str] );
@@ -207,6 +215,22 @@ sub statuses {
   $params //= {};
 
   return $self->get( "accounts/$id/statuses", $params );
+}
+
+# Reject follow requsts by account ID
+sub reject_follow {
+  my $self = shift;
+  state $check = compile( Int );
+  my ($id) = $check->(@_);
+  return $self->post( 'follow_requests/reject' => { id => $id } );
+}
+
+# Follow a remote user by acct (username@instance)
+sub remote_follow {
+  my $self = shift;
+  state $check = compile( Acct );
+  my ($acct) = $check->(@_);
+  return $self->post( 'follows' => { uri => $acct } );
 }
 
 sub relationships {

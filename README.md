@@ -21,9 +21,7 @@ Mastodon::Client - Talk to a Mastodon server
     })
 
     # Streaming interface might change!
-    my $listener = $client->stream(
-      name => 'public',
-    );
+    my $listener = $client->stream( 'public' );
     $listener->on( update => sub {
       my ($listener, $status) = @_;
       printf "%s said: %s\n",

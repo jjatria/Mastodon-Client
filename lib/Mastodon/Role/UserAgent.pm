@@ -159,11 +159,14 @@ sub _request {
       Encode::encode('utf8', $response->decoded_content)
     );
 
-    if ($self->coerce_entities) {
-      use Mastodon::Types qw( to_Entity );
-      $data = (ref $data eq 'ARRAY')
-        ? [ map { to_Entity($_) } @{$data} ]
-        : to_Entity($data);
+    # Some API calls return empty objects, which cannot be coerced
+    if ($response->decoded_content ne '{}') {
+      if ($self->coerce_entities) {
+        use Mastodon::Types qw( to_Entity );
+        $data = (ref $data eq 'ARRAY')
+          ? [ map { to_Entity($_) } @{$data} ]
+          : to_Entity($data);
+      }
     }
 
     if (ref $data eq 'ARRAY') {

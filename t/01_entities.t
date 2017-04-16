@@ -32,8 +32,7 @@ my $samples = {
     error => 'An error',
   },
   Instance => {
-    email => 'admin@instance.tld',
-    description => 'An instance',
+    uri => 'botsin.space',
   },
   Mention => {
     acct => 'username@instance.xyz',

@@ -5,7 +5,7 @@ use Test::Exception;
 use Test::More;
 use Test::Warnings 'warning';
 
-use Mastodon::Types qw( to_Entity );
+use Mastodon::Types qw( to_Entity to_Instance );
 
 # Test data uses only minimum arguments for entity constructors
 # These were set as required only to aid in automatic detection,
@@ -34,8 +34,7 @@ my $samples = {
     error => 'An error',
   },
   Instance => {
-    email => 'admin@instance.tld',
-    description => 'An instance',
+    uri => 'mastodon.social',
   },
   Mention => {
     acct => 'username@instance.xyz',
@@ -78,5 +77,11 @@ foreach my $name (keys %{$samples}) {
   ok my $e = to_Entity($samples->{$name}), 'Coercion succeeds';
   isa_ok $e, "Mastodon::Entity::$name";
 }
+
+ok my $e = to_Instance('mastodon.social'),
+  'Coercion of instance from string succeeds';
+isa_ok $e, 'Mastodon::Entity::Instance';
+
+like $e->uri, qr/https/, 'Instance defaults to HTTPS';
 
 done_testing();

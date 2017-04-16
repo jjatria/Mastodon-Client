@@ -11,13 +11,13 @@ my $log = Log::Any->get_logger( category => 'Mastodon' );
 use URI::QueryParam;
 use List::Util qw( any );
 use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
-use Mastodon::Types qw( URI UserAgent );
+use Mastodon::Types qw( URI Instance UserAgent );
 use Type::Params qw( compile );
 use Carp;
 
 has instance => (
-  is => 'ro',
-  isa => URI,
+  is => 'rw',
+  isa => Instance,
   default => 'https://mastodon.social',
   coerce => 1,
 );
@@ -54,12 +54,12 @@ sub authorization_url {
   }
 
   state $check = compile( slurpy Dict[
-    instance => URI->plus_coercions( Undef, sub { $self->instance } ),
+    instance => Instance->plus_coercions( Undef, sub { $self->instance } ),
   ]);
 
   use URI::QueryParam;
   my ($params) = $check->(@_);
-  my $uri = URI->new('/oauth/authorize')->abs($params->{instance});
+  my $uri = URI->new('/oauth/authorize')->abs($params->{instance}->uri);
   $uri->query_param(redirect_uri => $self->redirect_uri);
   $uri->query_param(response_type => 'code');
   $uri->query_param(client_id => $self->client_id);
@@ -80,7 +80,7 @@ sub _build_url {
         s%(^/|/$)%%g;
         require URI;
         my $api = (m%^/?oauth/%) ? '' : 'api/v' . $self->api_version . '/';
-        URI->new(join '/', $self->instance, $api . $_);
+        URI->new(join '/', $self->instance->uri, $api . $_);
       },
     )
   );

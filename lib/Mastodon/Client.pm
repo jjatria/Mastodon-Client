@@ -179,7 +179,7 @@ sub register {
 
   state $check = compile(
     slurpy Dict [
-      instance => URI->plus_coercions( Undef, sub { $self->instance } ),
+      instance => Instance->plus_coercions( Undef, sub { $self->instance } ),
       redirect_uris =>
         Str->plus_coercions( Undef, sub { $self->redirect_uri } ),
       scopes =>

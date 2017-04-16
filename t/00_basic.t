@@ -28,7 +28,7 @@ is $client->name, undef, 'Name has no default';
 is_deeply $client->scopes, ['read'],
   'Scopes default to read only';
 
-like $client->instance->as_string, qr/mastodon\.social/,
+like $client->instance->uri, qr/mastodon\.social/,
   'Instance defaults to mastodon.social';
 
 done_testing();

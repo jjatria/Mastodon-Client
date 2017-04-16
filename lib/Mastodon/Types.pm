@@ -82,6 +82,15 @@ foreach my $name (@entities) {
 
 role_type 'Entity', { role => 'Mastodon::Role::Entity' };
 
+coerce 'Instance',
+  from Str,
+    via {
+      require Mastodon::Entity::Instance;
+      Mastodon::Entity::Instance->new({
+        uri => $_,
+      });
+    };
+
 coerce 'Entity',
   from HashRef,
     via {

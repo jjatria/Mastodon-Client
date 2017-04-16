@@ -1,0 +1,56 @@
+{
+   "abstract" : "Talk to a Mastodon server",
+   "author" : [
+      "Jos\u00e9 Joaqu\u00edn Atria <jjatria@cpan.org>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 6.009, CPAN::Meta::Converter version 2.150005",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : 2
+   },
+   "name" : "Mastodon-Client",
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "AnyEvent::Emitter" : "0.02",
+            "LWP::UserAgent" : "6.25",
+            "Log::Any" : "1.049",
+            "Moo" : "2.003002",
+            "Try::Tiny" : "0.28",
+            "Type::Params" : "1.000006",
+            "Types::Common::String" : "0",
+            "Types::Standard" : "0",
+            "URI" : "1.71"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::Roo" : "0"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "mailto" : "jjatria at cpan.org",
+         "web" : "https://gitlab.com/jjatria/Mastodon-Client/issues"
+      },
+      "repository" : {
+         "type" : "git",
+         "url" : "git://gitlab.com/jjatria/Mastodon-Client.git",
+         "web" : "https://gitlab.com/jjatria/Mastodon-Client"
+      }
+   },
+   "version" : "0.002",
+   "x_serialization_backend" : "Cpanel::JSON::XS version 3.0231"
+}
+

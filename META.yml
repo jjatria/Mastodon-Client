@@ -1,5 +1,5 @@
 ---
-abstract: 'An app for the Mastodon platform'
+abstract: 'Talk to a Mastodon server'
 author:
   - 'José Joaquín Atria <jjatria@cpan.org>'
 build_requires:
@@ -23,5 +23,8 @@ requires:
   Types::Common::String: '0'
   Types::Standard: '0'
   URI: '1.71'
-version: '0.001'
+resources:
+  bugtracker: https://gitlab.com/jjatria/Mastodon-Client/issues
+  repository: git://gitlab.com/jjatria/Mastodon-Client.git
+version: '0.002'
 x_serialization_backend: 'YAML::Tiny version 1.70'

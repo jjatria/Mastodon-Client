@@ -1,0 +1,22 @@
+Revision history for Mastodon::Client
+
+0.002     2017-04-16 23:06:52+01:00 Europe/London
+
+  * New:
+    * Added convenience methods for all API endpoints
+    * Added a `coerce_entities` option to turn JSON responses from
+      Mastodon into Perl objects
+    * Added more tests (suite is still far from complete!)
+    * Added methods for sending DELETE and PATCH requests
+    * Added this change log. :)
+    * Several changes to dist.ini add repository data, META.json, etc.
+    * Added documentation
+  * Changes:
+    * Interface of `timeline()` and `stream()` methods now more
+      closely mirrors that of the rest of the distribution
+  * Fixes:
+    * Fixed several issues with passing arguments to requst functions
+
+0.001
+
+  * Initial release

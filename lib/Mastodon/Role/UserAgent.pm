@@ -117,6 +117,17 @@ sub _request {
     else                     { $url->query_param($key => $val) }
   }
 
+  foreach my $key (keys %{$data}) {
+    # Array parameters to the API need keys that are marked with []
+    # However, HTTP::Request::Common expects an arrayref to encode files
+    # for transfer, even though the API does not expect that to be an array
+    # So we need to manually skip it, unless we come up with another solution.
+    next if $key eq 'file';
+
+    my $val = $data->{$key};
+    $data->{$key . '[]'} = delete($data->{$key}) if ref $val eq 'ARRAY';
+  }
+
   if ($log->is_trace) {
     require Data::Dumper;
     $log->debugf('Method:  %s', $method);

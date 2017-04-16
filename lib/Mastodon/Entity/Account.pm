@@ -10,11 +10,13 @@ use Mastodon::Types qw( Acct URI DateTime );
 
 has acct            => ( is => 'ro', isa => Acct, required => 1 );
 has avatar          => ( is => 'ro', isa => URI, coerce => 1, required => 1 );
+has avatar_static   => ( is => 'ro', isa => URI, coerce => 1 );
 has created_at      => ( is => 'ro', isa => DateTime, coerce => 1 );
 has display_name    => ( is => 'ro', isa => Str );
 has followers_count => ( is => 'ro', isa => Int );
 has following_count => ( is => 'ro', isa => Int );
 has header          => ( is => 'ro', isa => URI, coerce => 1 );
+has header_static   => ( is => 'ro', isa => URI, coerce => 1 );
 has id              => ( is => 'ro', isa => Int );
 has locked          => ( is => 'ro', isa => Bool );
 has note            => ( is => 'ro', isa => Str );

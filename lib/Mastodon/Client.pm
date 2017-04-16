@@ -233,6 +233,22 @@ sub remote_follow {
   return $self->post( 'follows' => { uri => $acct } );
 }
 
+# Report a user account or list of statuses
+sub report {
+  my $self = shift;
+  state $check = compile( slurpy Dict[
+    account_id => Optional[Int],
+    status_ids => Optional[ArrayRef->plus_coercions( Int, sub { [ $_ ] } ) ],
+    comment => Optional[Str],
+  ]);
+  my ($data) = $check->(@_);
+
+  croak $log->fatal('Either account_id or status_ids are required for report')
+    unless join(' ', keys(%{$data})) =~ /\b(account_id|status_ids)\b/;
+
+  return $self->post( 'reports' => $data );
+}
+
 sub relationships {
   my $self = shift;
 

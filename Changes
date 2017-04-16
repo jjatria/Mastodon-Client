@@ -10,6 +10,10 @@ Revision history for Mastodon::Client
     * Added methods for sending DELETE and PATCH requests
     * Added this change log. :)
     * Several changes to dist.ini add repository data, META.json, etc.
+    * Added documentation
+  * Changes:
+    * Interface of `timeline()` and `stream()` methods now more
+      closely mirrors that of the rest of the distribution
   * Fixes:
     * Fixed several issues with passing arguments to requst functions
 

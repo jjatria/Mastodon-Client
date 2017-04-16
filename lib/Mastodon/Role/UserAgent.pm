@@ -8,6 +8,7 @@ use Moo::Role;
 use Log::Any;
 my $log = Log::Any->get_logger( category => 'Mastodon' );
 
+use URI::QueryParam;
 use List::Util qw( any );
 use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
 use Mastodon::Types qw( URI UserAgent );
@@ -109,12 +110,18 @@ sub _request {
     };
   }
 
+  # Adjust query param format to be Ruby-compliant
+  foreach my $key (keys %{$params}) {
+    my $val = $params->{$key};
+    if (ref $val eq 'ARRAY') { $url->query_param($key . '[]' => @{$val}) }
+    else                     { $url->query_param($key => $val) }
+  }
+
   if ($log->is_trace) {
     require Data::Dumper;
     $log->debugf('Method:  %s', $method);
     $log->debugf('URL: %s', $url);
     $log->debugf('Headers: %s', Data::Dumper::Dumper( $headers ));
-    $log->debugf('Params:  %s', Data::Dumper::Dumper( $params ));
     $log->debugf('Data:    %s', Data::Dumper::Dumper( $data ));
   }
 

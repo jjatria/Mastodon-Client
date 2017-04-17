@@ -1,6 +1,9 @@
 package Mastodon::Listener;
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
+
+use strict;
+use warnings;
 
 use Moo;
 extends 'AnyEvent::Emitter';
@@ -12,7 +15,7 @@ use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
 
 # my $app = Mastodon::Client->new( $config->{_} );
-# my $listener = $app->stream( name => 'public' );
+# my $listener = $app->stream( 'public' );
 #
 # $listener->on( update => sub {
 #   my ($listener, $msg) = @_;
@@ -148,15 +151,13 @@ Mastodon::Listener - Access the streaming API of a Mastodon server
     coerce_entities => 1,
   );
 
-  $client->post( statuses => {
-    status     => 'Posted to a Mastodon server!',
-    visibility => 'public',
-  })
+  $client->post_status('Posted to a Mastodon server!');
+  $client->post_status('And now in secret...',
+    { visibility => 'unlisted ' }
+  )
 
   # Streaming interface might change!
-  my $listener = $client->stream(
-    name => 'public',
-  );
+  my $listener = $client->stream( 'public' );
   $listener->on( update => sub {
     my ($listener, $status) = @_;
     printf "%s said: %s\n",

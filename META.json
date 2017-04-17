@@ -37,8 +37,10 @@
       },
       "test" : {
          "requires" : {
+            "Plack" : "1.0043",
             "Test::Exception" : "0.043",
             "Test::More" : "1.302078",
+            "Test::TCP" : "2.17",
             "Test::Warnings" : "0.026"
          }
       }
@@ -55,7 +57,7 @@
          "web" : "https://gitlab.com/jjatria/Mastodon-Client"
       }
    },
-   "version" : "0.003",
+   "version" : "0.004",
    "x_serialization_backend" : "Cpanel::JSON::XS version 3.0231"
 }
 

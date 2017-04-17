@@ -29,4 +29,7 @@ t/00_basic.t
 t/01_entities.t
 t/02_entity_coercion.t
 t/05_authorize.t
+t/10_tcp.t
+t/examples/getter.pl
 t/examples/public_stream.pl
+t/lib/Plack/App/Mastodon/MockServer/v1.pm

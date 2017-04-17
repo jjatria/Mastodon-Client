@@ -3,8 +3,10 @@ abstract: 'Talk to a Mastodon server'
 author:
   - 'José Joaquín Atria <jjatria@cpan.org>'
 build_requires:
+  Plack: '1.0043'
   Test::Exception: '0.043'
   Test::More: '1.302078'
+  Test::TCP: '2.17'
   Test::Warnings: '0.026'
 configure_requires:
   ExtUtils::MakeMaker: '0'
@@ -31,5 +33,5 @@ requires:
 resources:
   bugtracker: https://gitlab.com/jjatria/Mastodon-Client/issues
   repository: git://gitlab.com/jjatria/Mastodon-Client.git
-version: '0.003'
+version: '0.004'
 x_serialization_backend: 'YAML::Tiny version 1.70'

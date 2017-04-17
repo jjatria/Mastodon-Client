@@ -30,11 +30,13 @@ my %WriteMakefileArgs = (
     "URI" => "1.71"
   },
   "TEST_REQUIRES" => {
+    "Plack" => "1.0043",
     "Test::Exception" => "0.043",
     "Test::More" => "1.302078",
+    "Test::TCP" => "2.17",
     "Test::Warnings" => "0.026"
   },
-  "VERSION" => "0.003",
+  "VERSION" => "0.004",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -48,8 +50,10 @@ my %FallbackPrereqs = (
   "List::Util" => "1.47",
   "Log::Any" => "1.049",
   "Moo" => "2.003002",
+  "Plack" => "1.0043",
   "Test::Exception" => "0.043",
   "Test::More" => "1.302078",
+  "Test::TCP" => "2.17",
   "Test::Warnings" => "0.026",
   "Try::Tiny" => "0.28",
   "Type::Params" => "1.000006",

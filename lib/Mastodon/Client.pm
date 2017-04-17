@@ -5,10 +5,10 @@ use strict;
 use warnings;
 use v5.10.0;
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 use Carp;
-use Mastodon::Types qw( Acct Account DateTime Image URI );
+use Mastodon::Types qw( Acct Account DateTime Image URI Instance );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
@@ -35,9 +35,9 @@ has access_token => (
 
 has authorized => (
   is      => 'rw',
-  isa     => Maybe [DateTime],
+  isa     => DateTime|Bool,
   lazy    => 1,
-  default => sub {undef},
+  default => sub { defined $_[0]->access_token },
   coerce  => 1,
 );
 
@@ -77,10 +77,16 @@ has account => (
 
 has scopes => (
   is      => 'ro',
-  isa     => ArrayRef,
+  isa     => ArrayRef->plus_coercions( Str, sub { [ split / /, $_ ] } ),
   lazy    => 1,
   default => sub { [ 'read' ] },
+  coerce  => 1,
 );
+
+after access_token => sub {
+  my $self = shift;
+  $self->authorized(1);
+};
 
 sub authorize {
   my $self = shift;
@@ -168,42 +174,53 @@ sub delete_status {
 
 sub fetch_instance {
   my $self = shift;
-  $self->instance($self->get( 'instance' ));
+
+  # Do not return from the instance attribute, since the user might have
+  # disabled coercions, and the attribute is always coerced
+  my $instance = $self->get( 'instance' );
+  $self->instance($instance);
+  return $instance;
 }
 
 sub get_account {
   my $self = shift;
+  my $own = 'verify_credentials';
 
-  state $check = compile( Optional [Int], Optional [HashRef] );
+  state $check = compile( Optional [Int|HashRef], Optional [HashRef] );
   my ($id, $params) = $check->(@_);
 
-  $id     //= 'verify_credentials';
+  if (ref $id eq 'HASH') {
+    $params = $id;
+    $id = undef;
+  }
+
+  $id     //= $own;
   $params //= {};
 
-  my $data = $self->get( "accounts/$id" );
+  my $data = $self->get( "accounts/$id", $params );
 
   # We fetched authenticated user account's data
   # Update local reference
-  $self->account($data) if (scalar @_ == 1);
+  $self->account($data) if ($id eq $own);
   return $data;
 }
 
 # Get a single notification by ID
 sub get_notification {
   my $self = shift;
-  state $check = compile( Int );
-  my ($id) = $check->(@_);
+  state $check = compile( Int, Optional [HashRef] );
+  my ($id, $params) = $check->(@_);
 
-  return $self->get( "notifications/$id" );
+  return $self->get( "notifications/$id", $params );
 }
 
 # Get a single status by ID
 sub get_status {
   my $self = shift;
-  state $check = compile( Int );
-  my ($id) = $check->(@_);
+  state $check = compile( Int, Optional [HashRef] );
+  my ($id, $params) = $check->(@_);
 
-  return $self->get( "statuses/$id" );
+  return $self->get( "statuses/$id", $params );
 }
 
 # Post a status
@@ -257,13 +274,11 @@ sub register {
   );
   my ($params) = $check->(@_);
 
-  my $response = $self->post(
-    apps => {
-      client_name   => $self->name,
-      redirect_uris => $params->{redirect_uris},
-      scopes        => join ' ', sort( @{ $params->{scopes} } ),
-    }
-  );
+  my $response = $self->post('apps' => {
+    client_name   => $self->name,
+    redirect_uris => $params->{redirect_uris},
+    scopes        => join ' ', sort( @{ $params->{scopes} } ),
+  });
 
   $self->client_id( $response->{client_id} );
   $self->client_secret( $response->{client_secret} );
@@ -505,10 +520,10 @@ foreach my $pair ([
   no strict 'refs';
   *{ __PACKAGE__ . "::" . $method } = sub {
     my $self = shift;
-    state $check = compile( Int );
-    my ($id) = $check->(@_);
+    state $check = compile( Int, Optional [HashRef] );
+    my ($id, $params) = $check->(@_);
 
-    return $self->get( "statuses/$id/$endpoint" );
+    return $self->get( "statuses/$id/$endpoint", $params );
   };
 }
 
@@ -535,15 +550,13 @@ Mastodon::Client - Talk to a Mastodon server
     coerce_entities => 1,
   );
 
-  $client->post( statuses => {
-    status     => 'Posted to a Mastodon server!',
-    visibility => 'public',
-  })
+  $client->post_status('Posted to a Mastodon server!');
+  $client->post_status('And now in secret...',
+    { visibility => 'unlisted ' }
+  )
 
   # Streaming interface might change!
-  my $listener = $client->stream(
-    name => 'public',
-  );
+  my $listener = $client->stream( 'public' );
   $listener->on( update => sub {
     my ($listener, $status) = @_;
     printf "%s said: %s\n",
@@ -610,8 +623,9 @@ account's username and password.
 
 =item B<authorized>
 
-Initially undefined, once your client has been authorized this will be set to
-a L<DateTime> object representing when authorization was given.
+Boolean. False is the client has no defined access_token. When an access token
+is set, this is set to true or to a L<DateTime> object representing the time of
+authorization if possible (as received from the server).
 
 =item B<client_id>
 
@@ -1276,6 +1290,20 @@ query parameters. The Mastodon API does not use query parameters on POST or
 PATCH endpoints.
 
 =back
+
+=head1 CONTRIBUTIONS AND BUG REPORTS
+
+Contributions of any kind are most welcome!
+
+The main repository for this distribution is on
+L<https://gitlab.com/jjatria/Mastodon-Client|GitLab>, which is where patches
+and bug reports are mainly tracked. The repository is also mirrored on
+L<https://github.com/jjatria/Mastodon-Client|Github>, in case that platform
+makes it easier to post contributions.
+
+If none of the above is acceptable, bug reports can also be sent through the
+CPAN RT system, or by mail directly to the developers at the address below,
+although these will not be as closely tracked.
 
 =head1 AUTHOR
 

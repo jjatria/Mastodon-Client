@@ -480,7 +480,8 @@ for my $action (qw(
   *{ __PACKAGE__ . "::" . $action } = sub {
     my $self = shift;
     state $check = compile(Optional [HashRef]);
-    my $params = $check->(@_) // {};
+    my ($params) = $check->(@_);
+    $params //= {};
 
     return $self->get( $action, $params );
   };

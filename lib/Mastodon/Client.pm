@@ -184,37 +184,43 @@ sub fetch_instance {
 
 sub get_account {
   my $self = shift;
+  my $own = 'verify_credentials';
 
-  state $check = compile( Optional [Int], Optional [HashRef] );
+  state $check = compile( Optional [Int|HashRef], Optional [HashRef] );
   my ($id, $params) = $check->(@_);
 
-  $id     //= 'verify_credentials';
+  if (ref $id eq 'HASH') {
+    $params = $id;
+    $id = undef;
+  }
+
+  $id     //= $own;
   $params //= {};
 
-  my $data = $self->get( "accounts/$id" );
+  my $data = $self->get( "accounts/$id", $params );
 
   # We fetched authenticated user account's data
   # Update local reference
-  $self->account($data) if (scalar @_ == 1);
+  $self->account($data) if ($id eq $own);
   return $data;
 }
 
 # Get a single notification by ID
 sub get_notification {
   my $self = shift;
-  state $check = compile( Int );
-  my ($id) = $check->(@_);
+  state $check = compile( Int, Optional [HashRef] );
+  my ($id, $params) = $check->(@_);
 
-  return $self->get( "notifications/$id" );
+  return $self->get( "notifications/$id", $params );
 }
 
 # Get a single status by ID
 sub get_status {
   my $self = shift;
-  state $check = compile( Int );
-  my ($id) = $check->(@_);
+  state $check = compile( Int, Optional [HashRef] );
+  my ($id, $params) = $check->(@_);
 
-  return $self->get( "statuses/$id" );
+  return $self->get( "statuses/$id", $params );
 }
 
 # Post a status
@@ -516,10 +522,10 @@ foreach my $pair ([
   no strict 'refs';
   *{ __PACKAGE__ . "::" . $method } = sub {
     my $self = shift;
-    state $check = compile( Int );
-    my ($id) = $check->(@_);
+    state $check = compile( Int, Optional [HashRef] );
+    my ($id, $params) = $check->(@_);
 
-    return $self->get( "statuses/$id/$endpoint" );
+    return $self->get( "statuses/$id/$endpoint", $params );
   };
 }
 

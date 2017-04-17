@@ -274,13 +274,11 @@ sub register {
   );
   my ($params) = $check->(@_);
 
-  my $response = $self->post(
-    apps => {
-      client_name   => $self->name,
-      redirect_uris => $params->{redirect_uris},
-      scopes        => join ' ', sort( @{ $params->{scopes} } ),
-    }
-  );
+  my $response = $self->post('apps' => {
+    client_name   => $self->name,
+    redirect_uris => $params->{redirect_uris},
+    scopes        => join ' ', sort( @{ $params->{scopes} } ),
+  });
 
   $self->client_id( $response->{client_id} );
   $self->client_secret( $response->{client_secret} );

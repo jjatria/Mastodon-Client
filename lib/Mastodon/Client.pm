@@ -35,9 +35,9 @@ has access_token => (
 
 has authorized => (
   is      => 'rw',
-  isa     => DateTime|Int,
+  isa     => DateTime|Bool,
   lazy    => 1,
-  default => sub {undef},
+  default => sub { defined $_[0]->access_token },
   coerce  => 1,
 );
 
@@ -81,6 +81,11 @@ has scopes => (
   lazy    => 1,
   default => sub { [ 'read' ] },
 );
+
+after access_token => sub {
+  my $self = shift;
+  $self->authorized(1);
+};
 
 sub authorize {
   my $self = shift;
@@ -608,8 +613,9 @@ account's username and password.
 
 =item B<authorized>
 
-Initially undefined, once your client has been authorized this will be set to
-a L<DateTime> object representing when authorization was given.
+Boolean. False is the client has no defined access_token. When an access token
+is set, this is set to true or to a L<DateTime> object representing the time of
+authorization if possible (as received from the server).
 
 =item B<client_id>
 

@@ -550,10 +550,10 @@ Mastodon::Client - Talk to a Mastodon server
     coerce_entities => 1,
   );
 
-  $client->post( statuses => {
-    status     => 'Posted to a Mastodon server!',
-    visibility => 'public',
-  })
+  $client->post_status('Posted to a Mastodon server!');
+  $client->post_status('And now in secret...',
+    { visibility => 'unlisted ' }
+  )
 
   # Streaming interface might change!
   my $listener = $client->stream( 'public' );

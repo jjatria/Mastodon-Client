@@ -8,7 +8,7 @@ use v5.10.0;
 our $VERSION = '0.004';
 
 use Carp;
-use Mastodon::Types qw( Acct Account DateTime Image URI );
+use Mastodon::Types qw( Acct Account DateTime Image URI Instance );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard

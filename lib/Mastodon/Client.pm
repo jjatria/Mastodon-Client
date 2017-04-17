@@ -174,7 +174,12 @@ sub delete_status {
 
 sub fetch_instance {
   my $self = shift;
-  $self->instance($self->get( 'instance' ));
+
+  # Do not return from the instance attribute, since the user might have
+  # disabled coercions, and the attribute is always coerced
+  my $instance = $self->get( 'instance' );
+  $self->instance($instance);
+  return $instance;
 }
 
 sub get_account {

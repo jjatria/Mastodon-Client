@@ -35,7 +35,7 @@ has access_token => (
 
 has authorized => (
   is      => 'rw',
-  isa     => Maybe [DateTime],
+  isa     => DateTime|Int,
   lazy    => 1,
   default => sub {undef},
   coerce  => 1,

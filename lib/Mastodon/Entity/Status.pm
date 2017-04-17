@@ -13,6 +13,9 @@ use Mastodon::Types qw(
   URI Account Status DateTime Attachment Mention Tag Application
 );
 
+use Log::Any;
+my $log = Log::Any->get_logger( category => 'Mastodon' );
+
 has account => (
   is => 'ro', isa => Account, coerce => 1, required => 1
 );
@@ -95,5 +98,31 @@ has visibility => (
   )],
   required => 1,
 );
+
+foreach my $pair (
+    [ fetch            => 'get_status' ],
+    [ fetch_context    => 'get_status_context' ],
+    [ fetch_card       => 'get_status_card' ],
+    [ fetch_reblogs    => 'get_status_reblogs' ],
+    [ fetch_favourites => 'get_status_favourites' ],
+    [ delete           => 'delete_status' ],
+    [ boost            => 'reblog' ],
+    [ unboost          => 'unreblog' ],
+    [ favourite        => undef ],
+    [ unfavourite      => undef ],
+  ) {
+
+  my ($name, $method) = @{$pair};
+  $method //= $name;
+#
+  no strict 'refs';
+  *{ __PACKAGE__ . "::" . $name } = sub {
+    my $self = shift;
+    croak $log->fatal("Cannot call '$name' without client")
+      unless $self->_client;
+    $self->_client->$method($self->id, @_);
+  };
+}
+
 
 1;

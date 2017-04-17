@@ -7,6 +7,6 @@ use warnings;
 
 use Moo::Role;
 
-has _client => ( is => 'rw' );
+has _client => ( is => 'rw', weaken => 1);
 
 1;

@@ -1291,6 +1291,20 @@ PATCH endpoints.
 
 =back
 
+=head1 CONTRIBUTIONS AND BUG REPORTS
+
+Contributions of any kind are most welcome!
+
+The main repository for this distribution is on
+L<https://gitlab.com/jjatria/Mastodon-Client|GitLab>, which is where patches
+and bug reports are mainly tracked. The repository is also mirrored on
+L<https://github.com/jjatria/Mastodon-Client|Github>, in case that platform
+makes it easier to post contributions.
+
+If none of the above is acceptable, bug reports can also be sent through the
+CPAN RT system, or by mail directly to the developers at the address below,
+although these will not be as closely tracked.
+
 =head1 AUTHOR
 
 =over 4

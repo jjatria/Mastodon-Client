@@ -2,6 +2,9 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+  * Fixes:
+    * Fixed wrong links in POD
+
 0.004     2017-04-17 15:14:15+01:00 Europe/London
 
   * New:

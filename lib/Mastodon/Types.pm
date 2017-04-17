@@ -2,6 +2,9 @@ package Mastodon::Types;
 
 our $VERSION = '0';
 
+use strict;
+use warnings;
+
 use Type::Library -base;
 
 use Type::Utils -all;

@@ -2,6 +2,9 @@ package Mastodon::Entity::Report;
 
 our $VERSION = '0';
 
+use strict;
+use warnings;
+
 use Moo;
 with 'Mastodon::Role::Entity';
 

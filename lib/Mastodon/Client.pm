@@ -1296,9 +1296,9 @@ PATCH endpoints.
 Contributions of any kind are most welcome!
 
 The main repository for this distribution is on
-L<https://gitlab.com/jjatria/Mastodon-Client|GitLab>, which is where patches
+L<GitLab|https://gitlab.com/jjatria/Mastodon-Client>, which is where patches
 and bug reports are mainly tracked. The repository is also mirrored on
-L<https://github.com/jjatria/Mastodon-Client|Github>, in case that platform
+L<Github|https://github.com/jjatria/Mastodon-Client>, in case that platform
 makes it easier to post contributions.
 
 If none of the above is acceptable, bug reports can also be sent through the

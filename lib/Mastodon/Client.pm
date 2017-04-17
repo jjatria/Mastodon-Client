@@ -77,9 +77,10 @@ has account => (
 
 has scopes => (
   is      => 'ro',
-  isa     => ArrayRef,
+  isa     => ArrayRef->plus_coercions( Str, sub { [ split / /, $_ ] } ),
   lazy    => 1,
   default => sub { [ 'read' ] },
+  coerce  => 1,
 );
 
 after access_token => sub {

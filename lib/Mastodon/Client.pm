@@ -1213,6 +1213,8 @@ C<#> character). This argument is mandatory.
 In addition to the global GET parameters, this method accepts the following
 parameters:
 
+Accessing the public timelines does not require authentication.
+
 =over 4
 
 =item B<local>
@@ -1245,6 +1247,9 @@ the particular tag.
 
 For more details on how to use this object, see the documentation for
 L<Mastodon::Listener>.
+
+Accessing streaming public timeline will not require authentication (but as
+of this writing still does).
 
 =back
 

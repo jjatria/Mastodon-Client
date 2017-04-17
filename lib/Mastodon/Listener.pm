@@ -72,8 +72,13 @@ has coerce_entities => (
 sub start {
   my ($self) = @_;
 
-  $self->ua->get( $self->url,
-    Authorization => 'Bearer ' . $self->access_token,
+  my @args = $self->url;
+  if ($self->access_token) {
+    push @args, 'Authorization';
+    push @args, 'Bearer ' . $self->access_token;
+  }
+
+  $self->ua->get( @args,
     ':content_cb' => sub { $self->parse_message(@_) },
   );
 }

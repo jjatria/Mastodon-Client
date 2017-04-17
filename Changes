@@ -2,6 +2,18 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+  * New:
+    * Added some tests for GET requests, using Test::TCP
+    * Added an example script to dump responses to GET requests,
+      mainly for debug
+  * Fixes:
+    * Corrected some inconsistencies in the method signatures
+      with what was documented
+    * Do not try to coerce non-entity responses (ie. from OAuth2 flow)
+    * Respect the value of coerce_entities in more methods
+  * Changes:
+    * The `authorized` attribute is now never undefined
+
 0.003     2017-04-17 00:12:15+01:00 Europe/London
 
   * New:

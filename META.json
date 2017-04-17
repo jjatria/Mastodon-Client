@@ -57,7 +57,7 @@
          "web" : "https://gitlab.com/jjatria/Mastodon-Client"
       }
    },
-   "version" : "0.004",
+   "version" : "0.005",
    "x_serialization_backend" : "Cpanel::JSON::XS version 3.0231"
 }
 

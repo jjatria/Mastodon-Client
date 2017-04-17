@@ -33,5 +33,5 @@ requires:
 resources:
   bugtracker: https://gitlab.com/jjatria/Mastodon-Client/issues
   repository: git://gitlab.com/jjatria/Mastodon-Client.git
-version: '0.004'
+version: '0.005'
 x_serialization_backend: 'YAML::Tiny version 1.70'

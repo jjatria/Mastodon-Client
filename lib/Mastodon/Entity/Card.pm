@@ -1,6 +1,6 @@
 package Mastodon::Entity::Card;
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 use strict;
 use warnings;

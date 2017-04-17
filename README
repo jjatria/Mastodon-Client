@@ -15,10 +15,10 @@ Mastodon::Client - Talk to a Mastodon server
       coerce_entities => 1,
     );
 
-    $client->post( statuses => {
-      status     => 'Posted to a Mastodon server!',
-      visibility => 'public',
-    })
+    $client->post_status('Posted to a Mastodon server!');
+    $client->post_status('And now in secret...',
+      { visibility => 'unlisted ' }
+    )
 
     # Streaming interface might change!
     my $listener = $client->stream( 'public' );
@@ -86,8 +86,9 @@ should be usable right now.
 
 - **authorized**
 
-    Initially undefined, once your client has been authorized this will be set to
-    a [DateTime](https://metacpan.org/pod/DateTime) object representing when authorization was given.
+    Boolean. False is the client has no defined access\_token. When an access token
+    is set, this is set to true or to a [DateTime](https://metacpan.org/pod/DateTime) object representing the time of
+    authorization if possible (as received from the server).
 
 - **client\_id**
 - **client\_secret**
@@ -608,6 +609,20 @@ remaining parts will be filled-in appropriately internally.
     the optional hash reference is sent in as form data, instead of processed as
     query parameters. The Mastodon API does not use query parameters on POST or
     PATCH endpoints.
+
+# CONTRIBUTIONS AND BUG REPORTS
+
+Contributions of any kind are most welcome!
+
+The main repository for this distribution is on
+[https://gitlab.com/jjatria/Mastodon-Client|GitLab](https://gitlab.com/jjatria/Mastodon-Client|GitLab), which is where patches
+and bug reports are mainly tracked. The repository is also mirrored on
+[https://github.com/jjatria/Mastodon-Client|Github](https://github.com/jjatria/Mastodon-Client|Github), in case that platform
+makes it easier to post contributions.
+
+If none of the above is acceptable, bug reports can also be sent through the
+CPAN RT system, or by mail directly to the developers at the address below,
+although these will not be as closely tracked.
 
 # AUTHOR
 

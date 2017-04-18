@@ -177,7 +177,7 @@ A Mastodon::Listener object is created by calling the B<stream> method from a
 L<Mastodon::Client>, and it exists for the sole purpose of parsing a stream of
 events from a Mastodon server.
 
-Matodon::Listener objects inherit from L<AnyEvent::Emitter>. Please refer to
+Mastodon::Listener objects inherit from L<AnyEvent::Emitter>. Please refer to
 their documentation for details on how to register callbacks for the different
 events.
 

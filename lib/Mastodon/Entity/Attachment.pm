@@ -1,6 +1,6 @@
 package Mastodon::Entity::Attachment;
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 
 use strict;
 use warnings;

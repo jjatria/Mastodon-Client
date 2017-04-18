@@ -5,6 +5,7 @@ MANIFEST
 META.json
 META.yml
 Makefile.PL
+README.md
 dist.ini
 lib/Mastodon/Client.pm
 lib/Mastodon/Entity/Account.pm

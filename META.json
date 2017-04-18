@@ -45,7 +45,84 @@
          }
       }
    },
-   "provides" : {},
+   "provides" : {
+      "Mastodon::Client" : {
+         "file" : "lib/Mastodon/Client.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Account" : {
+         "file" : "lib/Mastodon/Entity/Account.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Application" : {
+         "file" : "lib/Mastodon/Entity/Application.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Attachment" : {
+         "file" : "lib/Mastodon/Entity/Attachment.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Card" : {
+         "file" : "lib/Mastodon/Entity/Card.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Context" : {
+         "file" : "lib/Mastodon/Entity/Context.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Error" : {
+         "file" : "lib/Mastodon/Entity/Error.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Instance" : {
+         "file" : "lib/Mastodon/Entity/Instance.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Mention" : {
+         "file" : "lib/Mastodon/Entity/Mention.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Notification" : {
+         "file" : "lib/Mastodon/Entity/Notification.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Relationship" : {
+         "file" : "lib/Mastodon/Entity/Relationship.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Report" : {
+         "file" : "lib/Mastodon/Entity/Report.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Results" : {
+         "file" : "lib/Mastodon/Entity/Results.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Status" : {
+         "file" : "lib/Mastodon/Entity/Status.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Entity::Tag" : {
+         "file" : "lib/Mastodon/Entity/Tag.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Listener" : {
+         "file" : "lib/Mastodon/Listener.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Role::Entity" : {
+         "file" : "lib/Mastodon/Role/Entity.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Role::UserAgent" : {
+         "file" : "lib/Mastodon/Role/UserAgent.pm",
+         "version" : "0.007"
+      },
+      "Mastodon::Types" : {
+         "file" : "lib/Mastodon/Types.pm",
+         "version" : "0.007"
+      }
+   },
    "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
@@ -58,7 +135,7 @@
          "web" : "https://gitlab.com/jjatria/Mastodon-Client"
       }
    },
-   "version" : "0.006",
+   "version" : "0.007",
    "x_serialization_backend" : "Cpanel::JSON::XS version 3.0231"
 }
 

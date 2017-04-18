@@ -1,5 +1,11 @@
 Revision history for Mastodon::Client
 
+0.007     2017-04-18 16:12:15+01:00 Europe/London
+
+  * Fixes:
+    * Corrected list of provided packages (fixed broken release)
+    * Add readme to distribution
+
 0.006     2017-04-18 02:28:45+01:00 Europe/London
 
   * New:

@@ -132,11 +132,81 @@ test_tcp(
 
     # statuses
     {
+      use Mastodon::Types qw( is_Status );
+      use List::Util qw( all );
+
       my $response;
       ok $response = $client->statuses(), 'statuses()';
+      isa_ok $response, 'ARRAY';
+      ok( (all { is_Status($_) } @{$response}), 'List of Status');
+      like $response->[0]->content, qr/#/i, 'Recent status has tag';
+      like $response->[1]->content, qr/@/i, 'Recent status has mention';
+
       ok $response = $client->statuses(2), 'statuses(Int)';
+      isa_ok $response, 'ARRAY';
+      is scalar(@{$response}), 0, 'b has no statuses';
+
       ok $response = $client->statuses({}), 'statuses(HashRef)';
+      isa_ok $response, 'ARRAY';
+      ok( (all { is_Status($_) } @{$response}), 'List of Status');
+      like $response->[0]->content, qr/#/i, 'Recent status has tag';
+      like $response->[1]->content, qr/@/i, 'Recent status has mention';
+
       ok $response = $client->statuses(2, {}), 'statuses(Int, HashRef)';
+      isa_ok $response, 'ARRAY';
+      is scalar(@{$response}), 0, 'b has no statuses';
+    }
+
+    # relationships
+    {
+      use Mastodon::Types qw( is_Relationship );
+      use List::Util qw( all );
+
+      my $response;
+      dies_ok { $client->relationships()   } 'relationships() dies';
+      dies_ok { $client->relationships({}) } 'relationships(HashRef) dies';
+
+      ok $response = $client->relationships(2),     'relationships(Int)';
+      isa_ok $response, 'ARRAY';
+      ok( (all { is_Relationship($_) } @{$response}), 'List of Relationship');
+      is scalar(@{$response}), 1, 'Requested one relationship';
+      ok !$response->[0]->following, 'Not followed by b';
+
+      ok $response = $client->relationships(2, 3),  'relationships(Int, Int)';
+      isa_ok $response, 'ARRAY';
+      ok( (all { is_Relationship($_) } @{$response}), 'List of Relationship');
+      is scalar(@{$response}), 2, 'Requested two relationships';
+      ok !$response->[0]->following, 'Not followed by b';
+      ok  $response->[1]->following, 'Followed by c';
+
+      ok $response = $client->relationships(2, {}), 'relationships(Int, HashRef)';
+      isa_ok $response, 'ARRAY';
+      ok( (all { is_Relationship($_) } @{$response}), 'List of Relationship');
+      is scalar(@{$response}), 1, 'Requested one relationship';
+      ok !$response->[0]->following, 'Not followed by b';
+    }
+
+    # search_accounts
+    {
+      use Mastodon::Types qw( is_Account );
+      use List::Util qw( all );
+
+      my $response;
+      dies_ok { $client->search_accounts()   } 'search_accounts() dies';
+      dies_ok { $client->search_accounts({}) } 'search_accounts(HashRef) dies';
+      dies_ok { $client->search_accounts('a', 'b') } 'search_accounts(Str, Str) dies';
+
+      ok $response = $client->search_accounts('a'), 'search_accounts(Str)';
+      isa_ok $response, 'ARRAY';
+      ok( (all { is_Account($_) } @{$response}), 'List of Account');
+      is scalar(@{$response}), 1, 'Requested one relationship';
+      like $response->[0]->username, qr/a/, 'Found self';
+
+      ok $response = $client->search_accounts('a', {}), 'search_accounts(Str, HashRef)';
+      isa_ok $response, 'ARRAY';
+      ok( (all { is_Account($_) } @{$response}), 'List of Account');
+      is scalar(@{$response}), 1, 'Requested one relationship';
+      like $response->[0]->username, qr/a/, 'Found self';
     }
   },
 );

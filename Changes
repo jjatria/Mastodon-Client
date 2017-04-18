@@ -1,5 +1,15 @@
 Revision history for Mastodon::Client
 
+0.006     2017-04-18 02:28:45+01:00 Europe/London
+
+  * New:
+    * Added tests for more methods
+    * Entity objects have experimental method shortcuts
+  * Fixes:
+    * Some of the GET methods did not correctly parse arguments
+  * Changes:
+    * The `uri` attribute for Status entities is not of type URI
+
 0.005     2017-04-17 15:20:15+01:00 Europe/London
 
   * Fixes:

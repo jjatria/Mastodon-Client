@@ -45,6 +45,7 @@
          }
       }
    },
+   "provides" : {},
    "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
@@ -57,7 +58,7 @@
          "web" : "https://gitlab.com/jjatria/Mastodon-Client"
       }
    },
-   "version" : "0.005",
+   "version" : "0.006",
    "x_serialization_backend" : "Cpanel::JSON::XS version 3.0231"
 }
 

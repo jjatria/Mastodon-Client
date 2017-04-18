@@ -1,6 +1,6 @@
 package Mastodon::Entity::Results;
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 use strict;
 use warnings;

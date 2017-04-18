@@ -17,6 +17,7 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: '1.4'
 name: Mastodon-Client
+provides: {}
 requires:
   AnyEvent::Emitter: '0.02'
   DateTime: '1.42'
@@ -33,5 +34,5 @@ requires:
 resources:
   bugtracker: https://gitlab.com/jjatria/Mastodon-Client/issues
   repository: git://gitlab.com/jjatria/Mastodon-Client.git
-version: '0.005'
+version: '0.006'
 x_serialization_backend: 'YAML::Tiny version 1.70'

@@ -1,6 +1,6 @@
 package Mastodon::Entity::Status;
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 use strict;
 use warnings;
@@ -12,6 +12,9 @@ use Types::Standard qw( Maybe Int Str Bool ArrayRef Enum );
 use Mastodon::Types qw(
   URI Account Status DateTime Attachment Mention Tag Application
 );
+
+use Log::Any;
+my $log = Log::Any->get_logger( category => 'Mastodon' );
 
 has account => (
   is => 'ro', isa => Account, coerce => 1, required => 1
@@ -82,7 +85,7 @@ has tags => (
 );
 
 has uri => (
-  is => 'ro', isa => URI, coerce => 1
+  is => 'ro', isa => Str
 );
 
 has url => (
@@ -95,5 +98,31 @@ has visibility => (
   )],
   required => 1,
 );
+
+foreach my $pair (
+    [ fetch            => 'get_status' ],
+    [ fetch_context    => 'get_status_context' ],
+    [ fetch_card       => 'get_status_card' ],
+    [ fetch_reblogs    => 'get_status_reblogs' ],
+    [ fetch_favourites => 'get_status_favourites' ],
+    [ delete           => 'delete_status' ],
+    [ boost            => 'reblog' ],
+    [ unboost          => 'unreblog' ],
+    [ favourite        => undef ],
+    [ unfavourite      => undef ],
+  ) {
+
+  my ($name, $method) = @{$pair};
+  $method //= $name;
+#
+  no strict 'refs';
+  *{ __PACKAGE__ . "::" . $name } = sub {
+    my $self = shift;
+    croak $log->fatal("Cannot call '$name' without client")
+      unless $self->_client;
+    $self->_client->$method($self->id, @_);
+  };
+}
+
 
 1;

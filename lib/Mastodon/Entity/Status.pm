@@ -85,7 +85,7 @@ has tags => (
 );
 
 has uri => (
-  is => 'ro', isa => URI, coerce => 1
+  is => 'ro', isa => Str
 );
 
 has url => (

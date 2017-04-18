@@ -551,6 +551,8 @@ documentation.
     In addition to the global GET parameters, this method accepts the following
     parameters:
 
+    Accessing the public timelines does not require authentication.
+
     - **local**
 
         Boolean. If true, limits results only to those originating from the current
@@ -575,6 +577,9 @@ of updates. To do this, there is the **stream()** method.
 
     For more details on how to use this object, see the documentation for
     [Mastodon::Listener](https://metacpan.org/pod/Mastodon::Listener).
+
+    Accessing streaming public timeline will not require authentication (but as
+    of this writing still does).
 
 # REQUEST METHODS
 

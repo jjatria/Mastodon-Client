@@ -126,11 +126,64 @@ my $samples = {
   },
   Status => {
     a => [
-      {},
-      {},
+      {
+        id         => 100,
+        uri        => 'tag:perl.test,2017-04-17:objectId=100:objectType=Status',
+        url        => 'https://perl.test/@a/100',
+        reblog     => undef,
+        account    => undef, # {Account}{a}
+        content    => '<p>A <a href="https://perl.test/tags/tag" class="mention hashtag">#<span>tag</span></a></p>',
+        mentions   => [],
+        reblogged  => undef,
+        sensitive  => 0,
+        visibility => 'public',
+        created_at => '2017-04-17T17:32:29.772Z',
+        favourited => undef,
+        application            => undef,
+        spoiler_text           => '',
+        reblogs_count          => 0,
+        in_reply_to_id         => undef,
+        favourites_count       => 0,
+        media_attachments      => [],
+        in_reply_to_account_id => undef,
+        tags => [{
+          url  => 'https://perl.test/tags/tag',
+          name => 'tag'
+        }],
+      },
+      {
+        id         => 101,
+        uri        => 'tag:perl.test,2017-04-17:objectId=101:objectType=Status',
+        url        => 'https://perl.test/@a/101',
+        tags       => [],
+        reblog     => undef,
+        content    => '<p>Hello, <span class="h-card"><a href="https://perl.test/@c" class="u-url mention">@<span>c</span></a></span>!</p>',
+        account    => undef, # {Account}{a}
+        reblogged  => undef,
+        sensitive  => 0,
+        visibility => 'public',
+        created_at => '2017-04-17T18:23:59.781Z',
+        favourited => undef,
+        application            => undef,
+        spoiler_text           => '',
+        reblogs_count          => 0,
+        in_reply_to_id         => undef,
+        favourites_count       => 0,
+        media_attachments      => [],
+        in_reply_to_account_id => undef,
+        mentions => [{
+          username => 'c',
+          acct     => 'c',
+          id       => 3,
+          url      => 'https://perl.test/@c'
+        }],
+      },
     ],
   },
 };
+
+$samples->{Status}{a}[0]{account} = $samples->{Account}{a};
+$samples->{Status}{a}[1]{account} = $samples->{Account}{a};
 
 my $routes = {
   GET => {
@@ -179,6 +232,23 @@ my $routes = {
       [ 'Content-Type' => 'application/json' ],
       [ encode_json [] ],
     ],
+    'accounts/relationships?id[]=2' => [
+      200,
+      [ 'Content-Type' => 'application/json' ],
+      [ encode_json [ $samples->{Relationship}{a}{b} ] ],
+    ],
+    'accounts/relationships?id[]=2&id[]=3' => [
+      200,
+      [ 'Content-Type' => 'application/json' ],
+      [ encode_json [
+        $samples->{Relationship}{a}{b}, $samples->{Relationship}{a}{c}
+      ] ],
+    ],
+    'accounts/search?q=a' => [
+      200,
+      [ 'Content-Type' => 'application/json' ],
+      [ encode_json [ $samples->{Account}{a} ] ],
+    ],
   },
 };
 
@@ -186,7 +256,8 @@ sub call {
   my ($self, $env) = @_;
 
   my $uri      = $env->{REQUEST_URI};
-  my $endpoint = $uri =~ s%^/api/v1/%%r;
+  my $endpoint = $uri      =~ s%^/api/v1/%%r;
+     $endpoint = $endpoint =~ s|%5B%5D|[]|gr;
   my $return = $routes->{$env->{REQUEST_METHOD}}{$endpoint} //
     [
       404,

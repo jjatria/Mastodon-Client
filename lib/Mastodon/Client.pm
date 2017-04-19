@@ -1319,6 +1319,12 @@ although these will not be as closely tracked.
 
 José Joaquín Atria <jjatria@cpan.org>
 
+=back
+
+=head1 CONTRIBUTORS
+
+=over 4
+
 =item *
 
 Lance Wicks <lancew@cpan.org>

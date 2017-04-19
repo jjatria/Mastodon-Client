@@ -11,6 +11,7 @@ extends 'AnyEvent::Emitter';
 use Carp;
 use Types::Standard qw( Str Bool );
 use AnyEvent::HTTP;
+use Try::Tiny;
 
 use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
@@ -31,7 +32,7 @@ has connection_guard => (
 );
 
 has cv => (
-  is => 'ro',
+  is => 'rw',
   init_arg => undef,
   lazy => 1,
   default => sub { AnyEvent->condvar },
@@ -46,9 +47,55 @@ has coerce_entities => (
 
 sub BUILD {
   my ($self, $arg) = @_;
+  $self->reset;
+}
 
-  $self->connection_guard( my $x = http_request GET => $self->url,
+sub start {
+  return $_[0]->cv->recv;
+}
+
+sub stop {
+  return shift->cv->send(@_);
+}
+
+sub reset {
+  $_[0]->connection_guard($_[0]->_set_connection);
+  return $_[0];
+}
+
+sub _emitter {
+  my ($self, $event, $data) = @_;
+
+  return unless $event;
+  return unless $data;
+
+  require JSON;
+
+  if ($event ne 'delete') {
+    $data = try {
+      JSON::decode_json( $data );
+    }
+    catch {
+      die $log->fatalf('Error decoding: %s', $_);
+    };
+
+    if ($self->coerce_entities) {
+      use Mastodon::Types qw( to_Status to_Notification );
+      $data = to_Notification($data) if $event eq 'notification';
+      $data = to_Status($data)       if $event eq 'update';
+    }
+  }
+
+  $self->emit( $event => $data );
+}
+
+sub _set_connection {
+  my $self = shift;
+  my $x = http_request GET => $self->url,
     headers => { Authorization => 'Bearer ' . $self->access_token },
+    handle_params => {
+      max_read_size => 8168,
+    },
     want_body_handle => 1,
     sub {
       my ($handle, $headers) = @_;
@@ -57,55 +104,43 @@ sub BUILD {
         $self->emit( error => $handle, 1,
           'Could not connect to ' . $self->url . ': ' . $headers->{Reason}
         );
+        $self->stop;
         undef $handle;
-        return $self->cv->send(0);
+        return;
       }
 
       unless ($handle) {
         $self->emit( error => $handle, 1,
           'Could not connect to ' . $self->url
         );
-        return $self->cv->send(0);
+        $self->stop;
+        return;
       }
 
-      my ($parse_event, $parse_data);
-      my $event;
+      my $event_pattern = qr{(:thump|event: (\w+)).*?data: (.*)}s;
 
-      # Event detector
+      my $parse_event;
       $parse_event = sub {
-        my ($handle, $line) = @_;
+        my ($handle, $chunk) = @_;
 
-        if ($line =~ /^event: (\w+)/) {
-          $event = $1;
-          $handle->push_read (line => $parse_data );
-        }
-        elsif ($line =~ /^:thump/) {
+        my ($event_line, $event, $data) = ($1, $2, $3);
+        $data =~ s/\s+$//s;
+
+        if ($event_line =~ /thump/) {
           $self->emit( 'heartbeat' );
-          $handle->push_read (line => $parse_event);
         }
         else {
-          $handle->push_read (line => $parse_event );
+          try   { $self->_emitter( $event => $data ) }
+          catch { $self->emit( error => $handle, 0, $_) };
         }
-      };
 
-      # Data detector
-      $parse_data = sub {
-        my ($handle, $line) = @_;
-
-        if ($line =~ /^data: /) {
-          $line =~ s/^data: //;
-          $self->_emitter($event => $line);
-          $handle->push_read (line => $parse_event );
-        }
-        else {
-          $handle->push_read (line => $parse_data );
-        }
+        $handle->push_read( regex => $event_pattern, $parse_event );
       };
 
       # Push initial reader: look for event name
       $handle->on_read(sub {
         my ($handle) = @_;
-        $handle->push_read (line => $parse_event );
+        $handle->push_read( regex => $event_pattern, $parse_event );
       });
 
       $handle->on_error(sub {
@@ -118,43 +153,8 @@ sub BUILD {
         $self->emit( eof => @_ );
       });
 
-    }
-  );
-}
-
-sub start {
-  shift->cv->recv;
-}
-
-sub stop {
-  shift->cv->send;
-}
-
-sub _emitter {
-  my ($self, $event, $data) = @_;
-
-  return unless $event;
-  return unless $data;
-
-  use Try::Tiny;
-  require JSON;
-
-  if ($event ne 'delete') {
-    $data = try {
-      JSON::decode_json( $data );
-    }
-    catch {
-      croak $log->fatalf('Error decoding: %s', $_);
     };
-
-    if ($self->coerce_entities) {
-      use Mastodon::Types qw( to_Status to_Notification );
-      $data = to_Notification($data) if $event eq 'notification';
-      $data = to_Status($data)       if $event eq 'update';
-    }
-  }
-
-  $self->emit( $event => $data );
+  return $x;
 }
 
 1;

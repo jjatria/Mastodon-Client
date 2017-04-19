@@ -6,6 +6,7 @@ use warnings;
 use strict;
 use diagnostics;
 
+use Term::ANSIColor qw(:constants);
 use Mastodon::Client;
 use AnyEvent;
 use Config::Tiny;
@@ -46,7 +47,6 @@ $listener->on( update => sub {
   # Only print 10 first statuses
   $listener->stop if ++$n >= 10;
 
-  use Term::ANSIColor qw(:constants);
   use HTML::FormatText::WithLinks;
   my $f = HTML::FormatText::WithLinks->new;
 
@@ -64,6 +64,11 @@ $listener->on( delete => sub {
   print BOLD RED sprintf("Status %s was deleted!\n\n", $data);
 });
 
+$listener->on( heartbeat => sub {
+  my ($listener) = @_;
+  print BOLD RED " -- THUMP -- \n\n";
+});
+
 $listener->on( notification => sub {
   my ($listener, $data) = @_;
 
@@ -77,8 +82,13 @@ $listener->on( notification => sub {
 });
 
 $listener->on( error => sub {
-  my $listener = shift;
-  print pop(@_), "\n";
+  my ($listener, $handle, $fatal, $message) = @_;
+  print BOLD YELLOW "$message ($fatal)\n\n";
+
+  if ($message eq 'Broken pipe') {
+    print BOLD YELLOW "...reconnecting...\n\n";
+    $listener->reset;
+  }
 });
 
 $listener->start;

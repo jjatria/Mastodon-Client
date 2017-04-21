@@ -401,7 +401,6 @@ sub stream {
     url             => $endpoint,
     access_token    => $self->access_token,
     coerce_entities => $self->coerce_entities,
-    ua              => $self->user_agent,
   );
 }
 

@@ -9,16 +9,41 @@ use Moo;
 extends 'AnyEvent::Emitter';
 
 use Carp;
-use Types::Standard qw( Str Bool );
+use Types::Standard qw( Int Str Bool );
+use Mastodon::Types qw( Instance );
 use AnyEvent::HTTP;
 use Try::Tiny;
 
 use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
 
+has instance => (
+  is => 'ro',
+  isa => Instance,
+  coerce => 1,
+  default => 'mastodon.cloud',
+);
+
+has api_version => (
+  is => 'ro',
+  isa => Int,
+  default => 1,
+);
+
 has url => (
   is => 'ro',
-  required => 1,
+  lazy => 1,
+  default => sub {
+      $_[0]->instance
+    . '/api/v' . $_[0]->api_version
+    . '/streaming/' . $_[0]->stream;
+  },
+);
+
+has stream => (
+  is => 'ro',
+  lazy => 1,
+  default => 'public',
 );
 
 has access_token => (
@@ -202,6 +227,22 @@ Once callbacks have been registered, the listener can be set in motion by
 calling its B<start> method, which takes no arguments and never returns.
 The B<stop> method can be called from within callbacks to disconnect from the
 stream.
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item B<url>
+
+=item B<stream>
+
+=item B<instance>
+
+=item B<api_version>
+
+=item B<coerce_entities>
+
+=item B<access_token>
 
 =head1 EVENTS
 

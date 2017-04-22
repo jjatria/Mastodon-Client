@@ -76,3 +76,172 @@ sub report {
 }
 
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Mastodon::Entity::Account - A Mastodon user account
+
+=head1 DESCRIPTION
+
+This object should not be manually created. It is intended to be generated
+from the data received from a Mastodon server using the coercions in
+L<Mastodon::Types>.
+
+For current information, see the
+L<Mastodon API documentation|https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#account>
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item B<id>
+
+The ID of the account
+
+=item B<username>
+
+The username of the account
+
+=item B<acct>
+
+Equals C<username> for local users, includes C<@domain> for remote ones
+
+=item B<display_name>
+
+The account's display name
+
+=item B<locked>
+
+Boolean for when the account cannot be followed without waiting for approval
+first
+
+=item B<created_at>
+
+The time the account was created
+
+=item B<followers_count>
+
+The number of followers for the account
+
+=item B<following_count>
+
+The number of accounts the given account is following
+
+=item B<statuses_count>
+
+The number of statuses the account has made
+
+=item B<note>
+
+Biography of user
+
+=item B<url>
+
+URL of the user's profile page (can be remote)
+
+=item B<avatar>
+
+URL to the avatar image
+
+=item B<avatar_static>
+
+URL to the avatar static image (gif)
+
+=item B<header>
+
+URL to the header image
+
+=item B<header_static>
+
+URL to the header static image (gif)
+
+=head1 METHODS
+
+This class provides the following convenience methods. They act as a shortcut,
+passing the appropriate identifier of the current object as the first argument
+to the corresponding methods in L<Mastodon::Client>.
+
+=over 4
+
+=item B<fetch>
+
+A shortcut to C<get_account>.
+
+=item B<followers>
+
+A shortcut to C<followers>.
+
+=item B<following>
+
+A shortcut to C<following>.
+
+=item B<statuses>
+
+A shortcut to C<statuses>.
+
+=item B<follow>
+
+A shortcut to C<follow>.
+
+=item B<unfollow>
+
+A shortcut to C<unfollow>.
+
+=item B<remote_follow>
+
+A shortcut to C<remote_follow>.
+
+=item B<report>
+
+A shortcut to C<report>.
+
+=item B<block>
+
+A shortcut to C<block>.
+
+=item B<unblock>
+
+A shortcut to C<unblock>.
+
+=item B<mute>
+
+A shortcut to C<mute>.
+
+=item B<unmute>
+
+A shortcut to C<unmute>.
+
+=item B<relationship>
+
+A shortcut to C<relationships>.
+
+=item B<authorize>
+
+A shortcut to C<authorize_follow>.
+
+=item B<reject>
+
+A shortcut to C<reject_follow>.
+
+=back
+
+=head1 AUTHOR
+
+=over 4
+
+=item *
+
+José Joaquín Atria <jjatria@cpan.org>
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2017 by José Joaquín Atria.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

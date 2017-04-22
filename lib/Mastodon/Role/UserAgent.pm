@@ -182,7 +182,9 @@ sub _request {
     return $data;
   }
   catch {
-    croak $log->fatalf('Could not complete request: %s', $_);
+    my $msg = sprintf 'Could not complete request: %s', $_;
+    $log->fatal($msg);
+    croak $msg;
   };
 }
 

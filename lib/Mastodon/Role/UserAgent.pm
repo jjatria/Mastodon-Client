@@ -1,6 +1,6 @@
 package Mastodon::Role::UserAgent;
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 
 use strict;
 use warnings;
@@ -164,7 +164,7 @@ sub _request {
 
     # Some API calls return empty objects, which cannot be coerced
     if ($response->decoded_content ne '{}') {
-      if ($url !~ /oauth/ and $self->coerce_entities) {
+      if ($url !~ /(apps|oauth)/ and $self->coerce_entities) {
         use Mastodon::Types qw( to_Entity );
         $data = (ref $data eq 'ARRAY')
           ? [ map { to_Entity({ %{$_}, _client => $self }) } @{$data} ]
@@ -182,7 +182,9 @@ sub _request {
     return $data;
   }
   catch {
-    croak $log->fatalf('Could not complete request: %s', $_);
+    my $msg = sprintf 'Could not complete request: %s', $_;
+    $log->fatal($msg);
+    croak $msg;
   };
 }
 

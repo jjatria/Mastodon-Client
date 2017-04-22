@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use v5.10.0;
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 
 use Carp;
 use Mastodon::Types qw( Acct Account DateTime Image URI Instance );
@@ -401,7 +401,6 @@ sub stream {
     url             => $endpoint,
     access_token    => $self->access_token,
     coerce_entities => $self->coerce_entities,
-    ua              => $self->user_agent,
   );
 }
 
@@ -1318,6 +1317,12 @@ although these will not be as closely tracked.
 =item *
 
 José Joaquín Atria <jjatria@cpan.org>
+
+=back
+
+=head1 CONTRIBUTORS
+
+=over 4
 
 =item *
 

@@ -256,8 +256,9 @@ sub call {
   my ($self, $env) = @_;
 
   my $uri      = $env->{REQUEST_URI};
-  my $endpoint = $uri      =~ s%^/api/v1/%%r;
-     $endpoint = $endpoint =~ s|%5B%5D|[]|gr;
+  my $endpoint = $uri;
+     $endpoint =~ s%^/api/v1/%%;
+     $endpoint =~ s|%5B%5D|[]|g;
   my $return = $routes->{$env->{REQUEST_METHOD}}{$endpoint} //
     [
       404,

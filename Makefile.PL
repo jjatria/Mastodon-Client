@@ -16,8 +16,11 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Mastodon::Client",
   "PREREQ_PM" => {
+    "AnyEvent" => "7.13",
     "AnyEvent::Emitter" => "0.02",
+    "AnyEvent::HTTP" => "2.23",
     "DateTime" => "1.42",
+    "DateTime::Format::Strptime" => "1.73",
     "LWP::UserAgent" => "6.25",
     "List::Util" => "1.47",
     "Log::Any" => "1.049",
@@ -36,7 +39,7 @@ my %WriteMakefileArgs = (
     "Test::TCP" => "2.17",
     "Test::Warnings" => "0.026"
   },
-  "VERSION" => "0.007",
+  "VERSION" => "0.008",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -44,8 +47,11 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "AnyEvent" => "7.13",
   "AnyEvent::Emitter" => "0.02",
+  "AnyEvent::HTTP" => "2.23",
   "DateTime" => "1.42",
+  "DateTime::Format::Strptime" => "1.73",
   "LWP::UserAgent" => "6.25",
   "List::Util" => "1.47",
   "Log::Any" => "1.049",

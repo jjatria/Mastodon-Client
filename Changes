@@ -1,5 +1,21 @@
 Revision history for Mastodon::Client
 
+0.008     2017-04-22 02:45:33+01:00 Europe/London
+
+  * New:
+    * Added documentation for entity and listener objects
+    * Status and Account objects have some convenience methods
+  * Changes:
+    * Re-wrote Mastodon::Listener to use AnyEvent::HTTP
+    * Added more attributes to Mastodon::Listener, making it more
+      usable as a standalone class
+  * Fixes:
+    * Fixed an issue with entity coercions, that could cause some
+      tests to fail
+    * TCP tests are skipped if unable to establish a connection
+    * Added more missing dependencies
+    * Never coerce server responses for app registration
+
 0.007     2017-04-18 16:12:15+01:00 Europe/London
 
   * Fixes:

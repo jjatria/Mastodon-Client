@@ -1,6 +1,6 @@
 package Mastodon::Entity::Status;
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 
 use strict;
 use warnings;
@@ -124,5 +124,175 @@ foreach my $pair (
   };
 }
 
-
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Mastodon::Entity::Status - A Mastodon status
+
+=head1 DESCRIPTION
+
+This object should not be manually created. It is intended to be generated
+from the data received from a Mastodon server using the coercions in
+L<Mastodon::Types>.
+
+For current information, see the
+L<Mastodon API documentation|https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status>
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item B<id>
+
+The ID of the status.
+
+=item B<uri>
+
+A Fediverse-unique resource ID.
+
+=item B<url>
+
+URL to the status page (can be remote).
+
+=item B<account>
+
+The L<Mastodon::Entity::Account> which posted the status.
+
+=item B<in_reply_to_id>
+
+C<undef> or the ID of the status it replies to.
+
+=item B<in_reply_to_account_id>
+
+C<undef> or the ID of the account it replies to.
+
+=item B<reblog>
+
+C<undef> or the reblogged L<Mastodon::Entity::Status>.
+
+=item B<content>
+
+Body of the status; this will contain HTML (remote HTML already sanitized).
+
+=item B<created_at>
+
+The time the status was created as a L<DateTime> object.
+
+=item B<reblogs_count>
+
+The number of reblogs for the status.
+
+=item B<favourites_count>
+
+The number of favourites for the status.
+
+=item B<reblogged>
+
+Whether the authenticated user has reblogged the status.
+
+=item B<favourited>
+
+Whether the authenticated user has favourited the status.
+
+=item B<sensitive>
+
+Whether media attachments should be hidden by default.
+
+=item B<spoiler_text>
+
+If not empty, warning text that should be displayed before the actual content.
+
+=item B<visibility>
+
+One of: C<public>, C<unlisted>, C<private>, C<direct>.
+
+=item B<media_attachments>
+
+An array of L<Mastodon::Entity::Attachment> objects.
+
+=item B<mentions>
+
+An array of L<Mastodon::Entity::Mention> objects.
+
+=item B<tags>
+
+An array of L<Mastodon::Entity::Tag> objects.
+
+=item B<application>
+
+Application from which the status was posted, as a
+L<Mastodon::Entity::Application> object.
+
+=back
+
+=head1 METHODS
+
+This class provides the following convenience methods. They act as a shortcut,
+passing the appropriate identifier of the current object as the first argument
+to the corresponding methods in L<Mastodon::Client>.
+
+=over 4
+
+=item B<fetch>
+
+A shortcut to C<get_status>.
+
+=item B<fetch_context>
+
+A shortcut to C<get_status_context>.
+
+=item B<fetch_card>
+
+A shortcut to C<get_status_card>.
+
+=item B<fetch_reblogs>
+
+A shortcut to C<get_status_reblogs>.
+
+=item B<fetch_favourites>
+
+A shortcut to C<get_status_favourites>.
+
+=item B<delete>
+
+A shortcut to C<delete_status>.
+
+=item B<boost>
+
+A shortcut to C<reblog>.
+
+=item B<unboost>
+
+A shortcut to C<unreblog>.
+
+=item B<favourite>
+
+A shortcut to C<favourite>.
+
+=item B<unfavourite>
+
+A shortcut to C<unfavourite>.
+
+=back
+
+=head1 AUTHOR
+
+=over 4
+
+=item *
+
+José Joaquín Atria <jjatria@cpan.org>
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2017 by José Joaquín Atria.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

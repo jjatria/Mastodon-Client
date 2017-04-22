@@ -1,6 +1,6 @@
 package Mastodon::Listener;
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 
 use strict;
 use warnings;
@@ -9,43 +9,41 @@ use Moo;
 extends 'AnyEvent::Emitter';
 
 use Carp;
-use Types::Standard qw( Str Bool );
+use Types::Standard qw( Int Str Bool );
+use Mastodon::Types qw( Instance );
+use AnyEvent::HTTP;
+use Try::Tiny;
 
 use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
 
-# my $app = Mastodon::Client->new( $config->{_} );
-# my $listener = $app->stream( 'public' );
-#
-# $listener->on( update => sub {
-#   my ($listener, $msg) = @_;
-#   $log->infof('%s (%s) says: %s',
-#     $msg->{account}{display_name},
-#     $msg->{account}{acct},
-#     $msg->{content}
-#   );
-# });
-#
-# $listener->on( delete => sub {
-#   my ($listener, $id) = @_;
-#   $log->infof('Item #%s has been deleted', $id);
-# });
-#
-# $listener->on( notification => sub {
-#   my ($listener, $msg) = @_;
-#   $log->infof('Received a notification! %s', $msg);
-# });
-#
-# $listener->on( heartbeat => sub {
-#   my ($listener, $msg) = @_;
-#   $log->infof('THUMP');
-# });
-#
-# $listener->start;
+has instance => (
+  is => 'ro',
+  isa => Instance,
+  coerce => 1,
+  default => 'mastodon.cloud',
+);
+
+has api_version => (
+  is => 'ro',
+  isa => Int,
+  default => 1,
+);
 
 has url => (
   is => 'ro',
-  required => 1,
+  lazy => 1,
+  default => sub {
+      $_[0]->instance
+    . '/api/v' . $_[0]->api_version
+    . '/streaming/' . $_[0]->stream;
+  },
+);
+
+has stream => (
+  is => 'ro',
+  lazy => 1,
+  default => 'public',
 );
 
 has access_token => (
@@ -53,84 +51,135 @@ has access_token => (
   required => 1,
 );
 
-has ua => (
+has connection_guard => (
   is => 'rw',
+  init_arg => undef,
+);
+
+has cv => (
+  is => 'rw',
+  init_arg => undef,
   lazy => 1,
-  default => sub {
-    require LWP::UserAgent;
-    LWP::UserAgent->new;
-  },
+  default => sub { AnyEvent->condvar },
 );
 
 has coerce_entities => (
   is => 'rw',
   isa => Bool,
   lazy => 1,
-  default => 1,
+  default => 0,
 );
 
-sub start {
-  my ($self) = @_;
-
-  my @args = $self->url;
-  if ($self->access_token) {
-    push @args, 'Authorization';
-    push @args, 'Bearer ' . $self->access_token;
-  }
-
-  $self->ua->get( @args,
-    ':content_cb' => sub { $self->parse_message(@_) },
-  );
+sub BUILD {
+  my ($self, $arg) = @_;
+  $self->reset;
 }
 
-{
-  my $buffer;
+sub start {
+  return $_[0]->cv->recv;
+}
 
-  sub parse_message {
-    my ($self, $chunk, $response, $protocol) = @_;
+sub stop {
+  return shift->cv->send(@_);
+}
 
-    chomp $chunk;
-    my @chunks = split /\n/, $chunk;
+sub reset {
+  $_[0]->connection_guard($_[0]->_set_connection);
+  return $_[0];
+}
 
-    foreach my $data (@chunks) {
-      if ($data =~ /^:(\w+)/) {
-        $self->emit( heartbeat => $1);
-      }
-      elsif ($data =~ /^event: (\w+)$/) {
-        croak $log->fatalf('Received two event definitions in a row!')
-          if defined $buffer and $buffer ne '';
-        $buffer = $1;
-      }
-      else {
-        $data =~ s/^data:\s+//;
-        next if defined $buffer and $buffer eq '';
+sub _emitter {
+  my ($self, $event, $data) = @_;
 
-        my $event = $buffer;
-        $buffer = '';
+  return unless $event;
+  return unless $data;
 
-        use Try::Tiny;
+  require JSON;
 
-        if ($event ne 'delete') {
-          require JSON;
+  if ($event ne 'delete') {
+    $data = try {
+      JSON::decode_json( $data );
+    }
+    catch {
+      die $log->fatalf('Error decoding: %s', $_);
+    };
 
-          $data = try {
-            $data = JSON::decode_json( $data );
-            if ($self->coerce_entities) {
-              use Mastodon::Types qw( to_Status );
-              return to_Status($data) if $event eq 'update';
-            }
-            return $data;
-          }
-          catch {
-            $log->warn($_);
-            return $data;
-          };
-        }
-
-        $self->emit( $event => $data);
-      }
+    if ($self->coerce_entities) {
+      use Mastodon::Types qw( to_Status to_Notification );
+      $data = to_Notification($data) if $event eq 'notification';
+      $data = to_Status($data)       if $event eq 'update';
     }
   }
+
+  $self->emit( $event => $data );
+}
+
+sub _set_connection {
+  my $self = shift;
+  my $x = http_request GET => $self->url,
+    headers => { Authorization => 'Bearer ' . $self->access_token },
+    handle_params => {
+      max_read_size => 8168,
+    },
+    want_body_handle => 1,
+    sub {
+      my ($handle, $headers) = @_;
+
+      if ($headers->{Status} !~ /^2/) {
+        $self->emit( error => $handle, 1,
+          'Could not connect to ' . $self->url . ': ' . $headers->{Reason}
+        );
+        $self->stop;
+        undef $handle;
+        return;
+      }
+
+      unless ($handle) {
+        $self->emit( error => $handle, 1,
+          'Could not connect to ' . $self->url
+        );
+        $self->stop;
+        return;
+      }
+
+      my $event_pattern = qr{(:thump|event: (\w+)).*?data: (.*)}s;
+
+      my $parse_event;
+      $parse_event = sub {
+        my ($handle, $chunk) = @_;
+
+        my ($event_line, $event, $data) = ($1, $2, $3);
+        $data =~ s/\s+$//s;
+
+        if ($event_line =~ /thump/) {
+          $self->emit( 'heartbeat' );
+        }
+        else {
+          try   { $self->_emitter( $event => $data ) }
+          catch { $self->emit( error => $handle, 0, $_) };
+        }
+
+        $handle->push_read( regex => $event_pattern, $parse_event );
+      };
+
+      # Push initial reader: look for event name
+      $handle->on_read(sub {
+        my ($handle) = @_;
+        $handle->push_read( regex => $event_pattern, $parse_event );
+      });
+
+      $handle->on_error(sub {
+        undef $handle;
+        $self->emit( error => @_ );
+      });
+
+      $handle->on_eof(sub {
+        undef $handle;
+        $self->emit( eof => @_ );
+      });
+
+    };
+  return $x;
 }
 
 1;
@@ -145,30 +194,23 @@ Mastodon::Listener - Access the streaming API of a Mastodon server
 
 =head1 SYNOPSIS
 
-  use Mastodon::Client;
+  # From Mastodon::Client
+  my $listener = $client->stream( 'public' );
 
-  my $client = Mastodon::Client->new(
-    instance        => 'mastodon.social',
-    name            => 'PerlBot',
-    client_id       => $client_id,
-    client_secret   => $client_secret,
-    access_token    => $access_token,
+  # Or use it directly
+  my $listener = Mastodon::Listener->new(
+    url => 'https://mastodon.cloud/api/v1/streaming/public',
+    access_token => $token,
     coerce_entities => 1,
-  );
-
-  $client->post_status('Posted to a Mastodon server!');
-  $client->post_status('And now in secret...',
-    { visibility => 'unlisted ' }
   )
 
-  # Streaming interface might change!
-  my $listener = $client->stream( 'public' );
   $listener->on( update => sub {
     my ($listener, $status) = @_;
     printf "%s said: %s\n",
       $status->account->display_name,
       $status->content;
   });
+
   $listener->start;
 
 =head1 DESCRIPTION
@@ -182,7 +224,43 @@ their documentation for details on how to register callbacks for the different
 events.
 
 Once callbacks have been registered, the listener can be set in motion by
-calling its B<start()> method, which takes no arguments and never returns.
+calling its B<start> method, which takes no arguments and never returns.
+The B<stop> method can be called from within callbacks to disconnect from the
+stream.
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item B<access_token>
+
+The OAuth2 access token of your application, if authorization is needed. This
+is not needed for streaming from public timelines.
+
+=item B<api_version>
+
+The API version to use. Defaults to C<1>.
+
+=item B<coerce_entities>
+
+Whether JSON responses should be coerced into Mastodon::Entity objects.
+Currently defaults to false (but this will likely change in v0.01).
+
+=item B<instance>
+
+The instance to use, as a L<Mastodon::Entity::Instance> object. Will be coerced
+from a URL, and defaults to C<mastodon.social>.
+
+=item B<stream>
+
+The stream to use. Current valid streams are C<public>, C<user>, and tag
+timelines. To access a tag timeline, the argument to this value should begin
+with a hash character (C<#>).
+
+=item B<url>
+
+The full streaming URL to use. By default, it is constructed from the values in
+the B<instance>, B<api_version>, and B<stream> attributes.
 
 =head1 EVENTS
 
@@ -207,6 +285,13 @@ ID of the deleted status.
 
 A new C<:thump> has been received from the server. This is mostly for
 debugging purposes.
+
+=item B<error>
+
+Inherited from L<AnyEvent::Emitter>, will be emitted when an error was found.
+The callback will be called with the same arguments as the B<on_error> callback
+for L<AnyEvent::Handle>: the handle of the current connection, a fatal flag,
+and an error message.
 
 =back
 

@@ -67,7 +67,7 @@ has coerce_entities => (
   is => 'rw',
   isa => Bool,
   lazy => 1,
-  default => 1,
+  default => 0,
 );
 
 sub BUILD {

@@ -232,17 +232,35 @@ stream.
 
 =over 4
 
-=item B<url>
+=item B<access_token>
 
-=item B<stream>
-
-=item B<instance>
+The OAuth2 access token of your application, if authorization is needed. This
+is not needed for streaming from public timelines.
 
 =item B<api_version>
 
+The API version to use. Defaults to C<1>.
+
 =item B<coerce_entities>
 
-=item B<access_token>
+Whether JSON responses should be coerced into Mastodon::Entity objects.
+Currently defaults to false (but this will likely change in v0.01).
+
+=item B<instance>
+
+The instance to use, as a L<Mastodon::Entity::Instance> object. Will be coerced
+from a URL, and defaults to C<mastodon.social>.
+
+=item B<stream>
+
+The stream to use. Current valid streams are C<public>, C<user>, and tag
+timelines. To access a tag timeline, the argument to this value should begin
+with a hash character (C<#>).
+
+=item B<url>
+
+The full streaming URL to use. By default, it is constructed from the values in
+the B<instance>, B<api_version>, and B<stream> attributes.
 
 =head1 EVENTS
 

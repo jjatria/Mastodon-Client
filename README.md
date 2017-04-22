@@ -632,6 +632,9 @@ although these will not be as closely tracked.
 # AUTHOR
 
 - José Joaquín Atria <jjatria@cpan.org>
+
+# CONTRIBUTORS
+
 - Lance Wicks <lancew@cpan.org>
 
 # COPYRIGHT AND LICENSE

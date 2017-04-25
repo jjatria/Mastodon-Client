@@ -131,30 +131,51 @@ sub _set_connection {
         return;
       }
 
-      my $event_pattern = qr{(:thump|event: (\w+)).*?data: (.*)}s;
+      my $event_pattern = qr{\s*(:thump|event: (\w+)).*?data:\s*}s;
+      my $skip_pattern  = qr{\s*}s;
 
       my $parse_event;
       $parse_event = sub {
         my ($handle, $chunk) = @_;
+        my $event = $2;
 
-        my ($event_line, $event, $data) = ($1, $2, $3);
-        $data =~ s/\s+$//s;
 
-        if ($event_line =~ /thump/) {
+        if (!defined $event) {
+          # Heartbeats have no data
           $self->emit( 'heartbeat' );
+          $handle->push_read( regex =>
+              $event_pattern, undef, $skip_pattern, $parse_event );
+        }
+        elsif ($event eq 'delete') {
+          # The payload for delete is a single integer
+          $handle->push_read( line => sub {
+            my ($handle, $line) = @_;
+            $log->tracef('Found deleted ID: %s', $line);
+
+            $self->emit( delete => $line );
+            $handle->push_read( regex =>
+              $event_pattern, undef, $skip_pattern, $parse_event );
+          });
         }
         else {
-          try   { $self->_emitter( $event => $data ) }
-          catch { $self->emit( error => $handle, 0, $_) };
-        }
+          # Other events have JSON arrays or objects
+          $handle->push_read( json => sub {
+            my ($handle, $json) = @_;
+            use JSON qw( encode_json );
+            $log->tracef('Found JSON payload: %s', substr(encode_json($json), 0, 50));
 
-        $handle->push_read( regex => $event_pattern, $parse_event );
+            $self->emit( $event => $json );
+            $handle->push_read( regex =>
+              $event_pattern, undef, $skip_pattern, $parse_event );
+          });
+        }
       };
 
       # Push initial reader: look for event name
       $handle->on_read(sub {
         my ($handle) = @_;
-        $handle->push_read( regex => $event_pattern, $parse_event );
+        $handle->push_read( regex =>
+          $event_pattern, undef, $skip_pattern, $parse_event );
       });
 
       $handle->on_error(sub {

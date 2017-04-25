@@ -88,31 +88,20 @@ sub reset {
   return $_[0];
 }
 
-sub _emitter {
-  my ($self, $event, $data) = @_;
+around emit => sub {
+  my $orig = shift;
+  my $self = shift;
 
-  return unless $event;
-  return unless $data;
-
-  require JSON;
-
-  if ($event ne 'delete') {
-    $data = try {
-      JSON::decode_json( $data );
-    }
-    catch {
-      die $log->fatalf('Error decoding: %s', $_);
-    };
-
-    if ($self->coerce_entities) {
-      use Mastodon::Types qw( to_Status to_Notification );
-      $data = to_Notification($data) if $event eq 'notification';
-      $data = to_Status($data)       if $event eq 'update';
-    }
+  my ($event, $data) = @_;
+  if ($event =~ /(update|notification)/ and $self->coerce_entities) {
+    use Mastodon::Types qw( to_Status to_Notification );
+    $data = to_Notification($data) if $event eq 'notification';
+    $data = to_Status($data)       if $event eq 'update';
+    $_[1] = $data;
   }
 
-  $self->emit( $event => $data );
-}
+  $self->$orig(@_);
+};
 
 sub _set_connection {
   my $self = shift;

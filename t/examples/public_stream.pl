@@ -89,6 +89,7 @@ $listener->on( notification => sub {
 
 $listener->on( error => sub {
   my ($listener, $handle, $fatal, $message) = @_;
+  $fatal //= 0;
   print BOLD YELLOW "$message ($fatal)\n\n";
 
   if ($message eq 'Broken pipe') {

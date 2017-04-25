@@ -830,6 +830,8 @@ The maximum number of matches. Defaults to 40.
 Depending on the value of C<coerce_entities>, returns an array reference of
 Mastodon::Entity::Account objects, or a plain array reference.
 
+This method does not require authentication.
+
 =back
 
 =head2 Apps
@@ -1101,6 +1103,8 @@ Fetches a status by ID. The ID argument is mandatory. Global GET parameters are 
 Depending on the value of C<coerce_entities>, it returns a
 Mastodon::Entity::Status object, or a plain hash reference.
 
+This method does not require authentication.
+
 =item B<get_status_context($id)>
 
 =item B<get_status_context($id, $params)>
@@ -1109,6 +1113,8 @@ Fetches the context of a status by ID. The ID argument is mandatory. Global GET 
 
 Depending on the value of C<coerce_entities>, it returns a
 Mastodon::Entity::Context object, or a plain hash reference.
+
+This method does not require authentication.
 
 =item B<get_status_card($id)>
 
@@ -1120,6 +1126,8 @@ reference.
 
 Depending on the value of C<coerce_entities>, it returns a
 Mastodon::Entity::Card object, or a plain hash reference.
+
+This method does not require authentication.
 
 =item B<get_status_reblogs($id)>
 
@@ -1135,6 +1143,8 @@ method as an additional hash reference.
 
 Depending on the value of C<coerce_entities>, it returns an array reference of
 Mastodon::Entity::Account objects, or a plain array reference.
+
+This method does not require authentication.
 
 =item B<post_status($text)>
 
@@ -1213,7 +1223,7 @@ C<#> character). This argument is mandatory.
 In addition to the global GET parameters, this method accepts the following
 parameters:
 
-Accessing the public timelines does not require authentication.
+Accessing the public and tag timelines does not require authentication.
 
 =over 4
 

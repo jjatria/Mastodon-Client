@@ -52,11 +52,17 @@ $listener->on( update => sub {
 
   local $Term::ANSIColor::AUTORESET = 1;
 
-  print BOLD BLUE sprintf("%s (%s):\n",
-    $data->account->display_name,
-    $data->account->acct,
-  );
-  print $f->parse($data->content);
+  my $name = $data->account->display_name;
+  $name = $data->account->acct if !defined $name or $name eq q{};
+
+  if ($data->reblog) {
+    print BLUE sprintf("%s reblogged a status:\n", $name);
+    $listener->emit( update => $data->reblog )
+  }
+  else {
+    print BOLD BLUE sprintf("%s:\n", $name);
+    print $f->parse($data->content);
+  }
 });
 
 $listener->on( delete => sub {

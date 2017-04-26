@@ -66,7 +66,7 @@ sub authorization_url {
   $uri->query_param(redirect_uri => $self->redirect_uri);
   $uri->query_param(response_type => 'code');
   $uri->query_param(client_id => $self->client_id);
-  $uri->query_param(scope => join ' ', sort(@{$self->scopes}));
+  $uri->query_param(scope => join q{ }, sort(@{$self->scopes}));
   return $uri;
 }
 
@@ -81,9 +81,9 @@ sub _build_url {
   state $check = compile(
     URI->plus_coercions(
       Str, sub {
-        s%(^/|/$)%%g;
+        s{(?:^/|/$)}{}g;
         require URI;
-        my $api = (m%^/?oauth/%) ? '' : 'api/v' . $self->api_version . '/';
+        my $api = (m{^/?oauth/}) ? q{} : 'api/v' . $self->api_version . '/';
         URI->new(join '/', $self->instance->uri, $api . $_);
       },
     )

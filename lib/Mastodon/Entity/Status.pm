@@ -116,9 +116,9 @@ foreach my $pair (
   $method //= $name;
 #
   no strict 'refs';
-  *{ __PACKAGE__ . "::" . $name } = sub {
+  *{ __PACKAGE__ . '::' . $name } = sub {
     my $self = shift;
-    croak $log->fatal("Cannot call '$name' without client")
+    croak $log->fatal(qq{Cannot call '$name' without client})
       unless $self->_client;
     $self->_client->$method($self->id, @_);
   };

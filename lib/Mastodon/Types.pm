@@ -14,14 +14,15 @@ use Types::Path::Tiny qw( File to_File);
 use URI;
 use DateTime;
 use MIME::Base64;
+use Class::Load qw( load_class );
 
 duck_type 'UserAgent', [qw( get post delete )];
 
 class_type 'URI', { class => 'URI' };
 
 coerce 'URI', from Str, via {
-  s%^/+%%g;
-  my $uri = URI->new((m%^https?://% ? '' : 'https://') . $_);
+  s{^/+}{}g;
+  my $uri = URI->new((m{^https?://} ? q{} : 'https://') . $_);
   $uri->scheme('https') unless $uri->scheme;
   return $uri;
 };
@@ -49,7 +50,7 @@ coerce 'DateTime',
 declare 'Acct', as Str;
 
 declare 'Image',
-  as Str, where { m%^data:image/(png|jpeg);base64,[a-zA-Z0-9/+=\n]+$% };
+  as Str, where { m{^data:image/(png|jpeg);base64,[a-zA-Z0-9/+=\n]+$} };
 
 coerce File, from Str, via {
   require Path::Tiny;

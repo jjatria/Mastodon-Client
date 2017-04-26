@@ -50,9 +50,9 @@ foreach my $pair (
   $method //= $name;
 
   no strict 'refs';
-  *{ __PACKAGE__ . "::" . $name } = sub {
+  *{ __PACKAGE__ . '::' . $name } = sub {
     my $self = shift;
-    croak $log->fatal("Cannot call '$name' without client")
+    croak $log->fatal(qq{Cannot call '$name' without client})
       unless $self->_client;
     $self->_client->$method($self->id, @_);
   };
@@ -60,14 +60,14 @@ foreach my $pair (
 
 sub remote_follow {
   my $self = shift;
-  croak $log->fatal("Cannot call 'remote_follow' without client")
+  croak $log->fatal(q{Cannot call 'remote_follow' without client})
     unless $self->_client;
   $self->_client->remote_follow($self->acct, @_);
 }
 
 sub report {
   my ($self, $params) = @_;
-  croak $log->fatal("Cannot call 'report' without client")
+  croak $log->fatal(q{Cannot call 'report' without client})
     unless $self->_client;
   $self->_client->report({
     %{$params},

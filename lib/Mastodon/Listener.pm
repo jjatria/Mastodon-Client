@@ -10,7 +10,7 @@ extends 'AnyEvent::Emitter';
 
 use Carp;
 use Types::Standard qw( Int Str Bool );
-use Mastodon::Types qw( Instance );
+use Mastodon::Types qw( Instance to_Status to_Notification );
 use AnyEvent::HTTP;
 use Try::Tiny;
 use JSON::MaybeXS qw( decode_json );
@@ -95,7 +95,6 @@ around emit => sub {
 
   my ($event, $data) = @_;
   if ($event =~ /(update|notification)/ and $self->coerce_entities) {
-    use Mastodon::Types qw( to_Status to_Notification );
     $data = to_Notification($data) if $event eq 'notification';
     $data = to_Status($data)       if $event eq 'update';
     $_[1] = $data;

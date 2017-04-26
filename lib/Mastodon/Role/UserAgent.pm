@@ -14,7 +14,7 @@ my $log = Log::Any->get_logger( category => 'Mastodon' );
 use URI::QueryParam;
 use List::Util qw( any );
 use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
-use Mastodon::Types qw( URI Instance UserAgent );
+use Mastodon::Types qw( URI Instance UserAgent to_Entity );
 use Type::Params qw( compile );
 use Carp;
 
@@ -144,7 +144,6 @@ sub _request {
     # Some API calls return empty objects, which cannot be coerced
     if ($response->decoded_content ne '{}') {
       if ($url !~ /(apps|oauth)/ and $self->coerce_entities) {
-        use Mastodon::Types qw( to_Entity );
         $data = (ref $data eq 'ARRAY')
           ? [ map { to_Entity({ %{$_}, _client => $self }) } @{$data} ]
           : to_Entity({ %{$data}, _client => $self });

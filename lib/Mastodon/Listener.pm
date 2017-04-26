@@ -136,9 +136,9 @@ sub _set_connection {
 
       my $parse_event;
       $parse_event = sub {
-        my ($handle, $chunk) = @_;
+        shift;
+        my $chunk = shift;
         my $event = $2;
-
 
         if (!defined $event) {
           # Heartbeats have no data
@@ -149,9 +149,8 @@ sub _set_connection {
         elsif ($event eq 'delete') {
           # The payload for delete is a single integer
           $handle->push_read( line => sub {
-            my ($handle, $line) = @_;
-            $log->tracef('Found deleted ID: %s', $line);
-
+            shift;
+            my $line = shift;
             $self->emit( delete => $line );
             $handle->push_read( regex =>
               $event_pattern, undef, $skip_pattern, $parse_event );
@@ -160,10 +159,8 @@ sub _set_connection {
         else {
           # Other events have JSON arrays or objects
           $handle->push_read( json => sub {
-            my ($handle, $json) = @_;
-            use JSON qw( encode_json );
-            $log->tracef('Found JSON payload: %s', substr(encode_json($json), 0, 50));
-
+            shift;
+            my $json = shift;
             $self->emit( $event => $json );
             $handle->push_read( regex =>
               $event_pattern, undef, $skip_pattern, $parse_event );
@@ -173,9 +170,7 @@ sub _set_connection {
 
       # Push initial reader: look for event name
       $handle->on_read(sub {
-        my ($handle) = @_;
-        $handle->push_read( regex =>
-          $event_pattern, undef, $skip_pattern, $parse_event );
+        $handle->push_read( regex => $event_pattern, $parse_event );
       });
 
       $handle->on_error(sub {

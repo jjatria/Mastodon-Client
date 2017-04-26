@@ -99,11 +99,10 @@ sub _request {
   my $url    = shift;
   my $args   = { @_ };
 
-  $url = $self->_build_url($url) unless ref $url eq 'URI';
-
-  my $data    = $args->{data}    // {};
   my $headers = $args->{headers} // {};
-  my $params  = $args->{params}  // {};
+  my $data    = $self->_prepare_data($args->{data});
+
+  $url = $self->_prepare_params($url, $args->{params});
 
   $method = uc($method);
 
@@ -112,24 +111,6 @@ sub _request {
       Authorization => 'Bearer ' . $self->access_token,
       %{$headers},
     };
-  }
-
-  # Adjust query param format to be Ruby-compliant
-  foreach my $key (keys %{$params}) {
-    my $val = $params->{$key};
-    if (ref $val eq 'ARRAY') { $url->query_param($key . '[]' => @{$val}) }
-    else                     { $url->query_param($key => $val) }
-  }
-
-  foreach my $key (keys %{$data}) {
-    # Array parameters to the API need keys that are marked with []
-    # However, HTTP::Request::Common expects an arrayref to encode files
-    # for transfer, even though the API does not expect that to be an array
-    # So we need to manually skip it, unless we come up with another solution.
-    next if $key eq 'file';
-
-    my $val = $data->{$key};
-    $data->{$key . '[]'} = delete($data->{$key}) if ref $val eq 'ARRAY';
   }
 
   if ($log->is_trace) {
@@ -184,6 +165,40 @@ sub _request {
     $log->fatal($msg);
     croak $msg;
   };
+}
+
+sub _prepare_data {
+  my ($self, $url, $data) = @_;
+  $data //= {};
+
+  foreach my $key (keys %{$data}) {
+    # Array parameters to the API need keys that are marked with []
+    # However, HTTP::Request::Common expects an arrayref to encode files
+    # for transfer, even though the API does not expect that to be an array
+    # So we need to manually skip it, unless we come up with another solution.
+    next if $key eq 'file';
+
+    my $val = $data->{$key};
+    $data->{$key . '[]'} = delete($data->{$key}) if ref $val eq 'ARRAY';
+  }
+
+  return $data;
+}
+
+sub _prepare_params {
+  my ($self, $url, $params) = @_;
+  $params //= {};
+
+  $url = $self->_build_url($url) unless ref $url eq 'URI';
+
+  # Adjust query param format to be Ruby-compliant
+  foreach my $key (keys %{$params}) {
+    my $val = $params->{$key};
+    if (ref $val eq 'ARRAY') { $url->query_param($key . '[]' => @{$val}) }
+    else                     { $url->query_param($key => $val) }
+  }
+
+  return $url;
 }
 
 1;

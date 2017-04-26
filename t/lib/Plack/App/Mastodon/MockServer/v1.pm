@@ -6,7 +6,7 @@ use warnings;
 use parent qw( Plack::Component );
 
 use Plack::Util;
-use JSON;
+use JSON::MaybeXS qw( encode_json );
 
 my $samples = {
   Account => {

@@ -13,6 +13,7 @@ use Types::Standard qw( Int Str Bool );
 use Mastodon::Types qw( Instance );
 use AnyEvent::HTTP;
 use Try::Tiny;
+use JSON::MaybeXS qw( decode_json );
 
 use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');

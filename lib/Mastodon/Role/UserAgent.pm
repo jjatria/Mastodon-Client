@@ -153,14 +153,12 @@ sub _request {
 
     my $response = $self->user_agent->request( $request );
 
-    require JSON;
-    require Encode;
+    use JSON::MaybeXS qw( decode_json );
+    use Encode qw( encode );
 
     die $response->status_line unless $response->is_success;
 
-    my $data = JSON::decode_json(
-      Encode::encode('utf8', $response->decoded_content)
-    );
+    my $data = decode_json encode('utf8', $response->decoded_content);
 
     # Some API calls return empty objects, which cannot be coerced
     if ($response->decoded_content ne '{}') {

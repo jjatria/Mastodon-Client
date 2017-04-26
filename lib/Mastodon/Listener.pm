@@ -273,6 +273,8 @@ with a hash character (C<#>).
 The full streaming URL to use. By default, it is constructed from the values in
 the B<instance>, B<api_version>, and B<stream> attributes.
 
+=back
+
 =head1 EVENTS
 
 =over 4

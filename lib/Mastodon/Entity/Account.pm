@@ -157,6 +157,8 @@ URL to the header image
 
 URL to the header static image (gif)
 
+=back
+
 =head1 METHODS
 
 This class provides the following convenience methods. They act as a shortcut,

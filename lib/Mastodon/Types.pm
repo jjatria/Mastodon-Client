@@ -50,7 +50,7 @@ coerce 'DateTime',
 declare 'Acct', as Str;
 
 declare 'Image',
-  as Str, where { m{^data:image/(png|jpeg);base64,[a-zA-Z0-9/+=\n]+$} };
+  as Str, where { m{^data:image/(?:png|jpeg);base64,[a-zA-Z0-9/+=\n]+$} };
 
 coerce File, from Str, via {
   require Path::Tiny;

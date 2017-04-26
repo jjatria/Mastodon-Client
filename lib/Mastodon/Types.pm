@@ -79,7 +79,7 @@ my @entities = qw(
 foreach my $name (@entities) {
   class_type $name, { class => "Mastodon::Entity::$name" };
   coerce $name, from HashRef, via {
-    eval "require Mastodon::Entity::$name";
+    load_class "Mastodon::Entity::$name";
     "Mastodon::Entity::$name"->new($_);
   };
 }
@@ -104,7 +104,7 @@ coerce 'Entity',
       use Try::Tiny;
       foreach my $name (@entities) {
         $entity = try {
-          eval "require Mastodon::Entity::$name;";
+          load_class "Mastodon::Entity::$name";
           "Mastodon::Entity::$name"->new($hash);
         };
         last if defined $entity;

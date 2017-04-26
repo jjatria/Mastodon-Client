@@ -1,9 +1,9 @@
 package Mastodon::Listener;
 
-our $VERSION = '0';
-
 use strict;
 use warnings;
+
+our $VERSION = '0';
 
 use Moo;
 extends 'AnyEvent::Emitter';

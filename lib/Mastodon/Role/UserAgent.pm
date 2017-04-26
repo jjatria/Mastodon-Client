@@ -1,9 +1,9 @@
 package Mastodon::Role::UserAgent;
 
-our $VERSION = '0';
-
 use strict;
 use warnings;
+
+our $VERSION = '0';
 
 use v5.10.0;
 use Moo::Role;

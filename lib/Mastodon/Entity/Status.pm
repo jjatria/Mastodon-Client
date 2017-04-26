@@ -114,7 +114,7 @@ foreach my $pair (
 
   my ($name, $method) = @{$pair};
   $method //= $name;
-#
+
   no strict 'refs';
   *{ __PACKAGE__ . '::' . $name } = sub {
     my $self = shift;

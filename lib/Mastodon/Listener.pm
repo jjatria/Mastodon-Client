@@ -93,14 +93,13 @@ around emit => sub {
   my $orig = shift;
   my $self = shift;
 
-  my ($event, $data) = @_;
+  my ($event, $data, @rest) = @_;
   if ($event =~ /(update|notification)/ and $self->coerce_entities) {
     $data = to_Notification($data) if $event eq 'notification';
     $data = to_Status($data)       if $event eq 'update';
-    $_[1] = $data;
   }
 
-  $self->$orig(@_);
+  $self->$orig($event, $data, @rest);
 };
 
 sub _set_connection {

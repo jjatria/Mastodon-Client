@@ -139,25 +139,25 @@ sub _request {
 
     die $response->status_line unless $response->is_success;
 
-    my $data = decode_json encode('utf8', $response->decoded_content);
+    my $payload = decode_json encode('utf8', $response->decoded_content);
 
     # Some API calls return empty objects, which cannot be coerced
     if ($response->decoded_content ne '{}') {
-      if ($url !~ /(apps|oauth)/ and $self->coerce_entities) {
-        $data = (ref $data eq 'ARRAY')
-          ? [ map { to_Entity({ %{$_}, _client => $self }) } @{$data} ]
-          : to_Entity({ %{$data}, _client => $self });
+      if ($url !~ /(?:apps|oauth)/ and $self->coerce_entities) {
+        $payload = (ref $payload eq 'ARRAY')
+          ? [ map { to_Entity({ %{$_}, _client => $self }) } @{$payload} ]
+          : to_Entity({ %{$payload}, _client => $self });
       }
     }
 
-    if (ref $data eq 'ARRAY') {
-      die $data->{error} if any { defined $_->{error} } @{$data};
+    if (ref $payload eq 'ARRAY') {
+      die $payload->{error} if any { defined $_->{error} } @{$payload};
     }
-    elsif (ref $data eq 'HASH') {
-      die $data->{error} if defined $data->{error};
+    elsif (ref $payload eq 'HASH') {
+      die $payload->{error} if defined $payload->{error};
     }
 
-    return $data;
+    return $payload;
   }
   catch {
     my $msg = sprintf 'Could not complete request: %s', $_;

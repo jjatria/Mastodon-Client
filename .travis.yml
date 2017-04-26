@@ -25,3 +25,8 @@ install:
 
 script:
   - dzil test
+
+matrix:
+  allow_failures:
+    - perl: '5.12'
+    - perl: '5.10'

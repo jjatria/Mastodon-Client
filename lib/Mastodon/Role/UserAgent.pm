@@ -1,9 +1,9 @@
 package Mastodon::Role::UserAgent;
 
-our $VERSION = '0.008';
-
 use strict;
 use warnings;
+
+our $VERSION = '0.009';
 
 use v5.10.0;
 use Moo::Role;
@@ -14,7 +14,7 @@ my $log = Log::Any->get_logger( category => 'Mastodon' );
 use URI::QueryParam;
 use List::Util qw( any );
 use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
-use Mastodon::Types qw( URI Instance UserAgent );
+use Mastodon::Types qw( URI Instance UserAgent to_Entity );
 use Type::Params qw( compile );
 use Carp;
 
@@ -66,7 +66,7 @@ sub authorization_url {
   $uri->query_param(redirect_uri => $self->redirect_uri);
   $uri->query_param(response_type => 'code');
   $uri->query_param(client_id => $self->client_id);
-  $uri->query_param(scope => join ' ', sort(@{$self->scopes}));
+  $uri->query_param(scope => join q{ }, sort(@{$self->scopes}));
   return $uri;
 }
 
@@ -81,9 +81,9 @@ sub _build_url {
   state $check = compile(
     URI->plus_coercions(
       Str, sub {
-        s%(^/|/$)%%g;
+        s{(?:^/|/$)}{}g;
         require URI;
-        my $api = (m%^/?oauth/%) ? '' : 'api/v' . $self->api_version . '/';
+        my $api = (m{^/?oauth/}) ? q{} : 'api/v' . $self->api_version . '/';
         URI->new(join '/', $self->instance->uri, $api . $_);
       },
     )
@@ -99,11 +99,10 @@ sub _request {
   my $url    = shift;
   my $args   = { @_ };
 
-  $url = $self->_build_url($url) unless ref $url eq 'URI';
-
-  my $data    = $args->{data}    // {};
   my $headers = $args->{headers} // {};
-  my $params  = $args->{params}  // {};
+  my $data    = $self->_prepare_data($args->{data});
+
+  $url = $self->_prepare_params($url, $args->{params});
 
   $method = uc($method);
 
@@ -112,24 +111,6 @@ sub _request {
       Authorization => 'Bearer ' . $self->access_token,
       %{$headers},
     };
-  }
-
-  # Adjust query param format to be Ruby-compliant
-  foreach my $key (keys %{$params}) {
-    my $val = $params->{$key};
-    if (ref $val eq 'ARRAY') { $url->query_param($key . '[]' => @{$val}) }
-    else                     { $url->query_param($key => $val) }
-  }
-
-  foreach my $key (keys %{$data}) {
-    # Array parameters to the API need keys that are marked with []
-    # However, HTTP::Request::Common expects an arrayref to encode files
-    # for transfer, even though the API does not expect that to be an array
-    # So we need to manually skip it, unless we come up with another solution.
-    next if $key eq 'file';
-
-    my $val = $data->{$key};
-    $data->{$key . '[]'} = delete($data->{$key}) if ref $val eq 'ARRAY';
   }
 
   if ($log->is_trace) {
@@ -153,39 +134,70 @@ sub _request {
 
     my $response = $self->user_agent->request( $request );
 
-    require JSON;
-    require Encode;
+    use JSON::MaybeXS qw( decode_json );
+    use Encode qw( encode );
 
     die $response->status_line unless $response->is_success;
 
-    my $data = JSON::decode_json(
-      Encode::encode('utf8', $response->decoded_content)
-    );
+    my $payload = decode_json encode('utf8', $response->decoded_content);
 
     # Some API calls return empty objects, which cannot be coerced
     if ($response->decoded_content ne '{}') {
-      if ($url !~ /(apps|oauth)/ and $self->coerce_entities) {
-        use Mastodon::Types qw( to_Entity );
-        $data = (ref $data eq 'ARRAY')
-          ? [ map { to_Entity({ %{$_}, _client => $self }) } @{$data} ]
-          : to_Entity({ %{$data}, _client => $self });
+      if ($url !~ /(?:apps|oauth)/ and $self->coerce_entities) {
+        $payload = (ref $payload eq 'ARRAY')
+          ? [ map { to_Entity({ %{$_}, _client => $self }) } @{$payload} ]
+          : to_Entity({ %{$payload}, _client => $self });
       }
     }
 
-    if (ref $data eq 'ARRAY') {
-      die $data->{error} if any { defined $_->{error} } @{$data};
+    if (ref $payload eq 'ARRAY') {
+      die $payload->{error} if any { defined $_->{error} } @{$payload};
     }
-    elsif (ref $data eq 'HASH') {
-      die $data->{error} if defined $data->{error};
+    elsif (ref $payload eq 'HASH') {
+      die $payload->{error} if defined $payload->{error};
     }
 
-    return $data;
+    return $payload;
   }
   catch {
     my $msg = sprintf 'Could not complete request: %s', $_;
     $log->fatal($msg);
     croak $msg;
   };
+}
+
+sub _prepare_data {
+  my ($self, $url, $data) = @_;
+  $data //= {};
+
+  foreach my $key (keys %{$data}) {
+    # Array parameters to the API need keys that are marked with []
+    # However, HTTP::Request::Common expects an arrayref to encode files
+    # for transfer, even though the API does not expect that to be an array
+    # So we need to manually skip it, unless we come up with another solution.
+    next if $key eq 'file';
+
+    my $val = $data->{$key};
+    $data->{$key . '[]'} = delete($data->{$key}) if ref $val eq 'ARRAY';
+  }
+
+  return $data;
+}
+
+sub _prepare_params {
+  my ($self, $url, $params) = @_;
+  $params //= {};
+
+  $url = $self->_build_url($url) unless ref $url eq 'URI';
+
+  # Adjust query param format to be Ruby-compliant
+  foreach my $key (keys %{$params}) {
+    my $val = $params->{$key};
+    if (ref $val eq 'ARRAY') { $url->query_param($key . '[]' => @{$val}) }
+    else                     { $url->query_param($key => $val) }
+  }
+
+  return $url;
 }
 
 1;

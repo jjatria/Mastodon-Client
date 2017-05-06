@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-
+use 5.010;
 
 use ExtUtils::MakeMaker;
 
@@ -14,6 +14,7 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Mastodon-Client",
   "LICENSE" => "perl",
+  "MIN_PERL_VERSION" => "5.010",
   "NAME" => "Mastodon::Client",
   "PREREQ_PM" => {
     "AnyEvent" => "7.13",
@@ -21,6 +22,7 @@ my %WriteMakefileArgs = (
     "AnyEvent::HTTP" => "2.23",
     "DateTime" => "1.42",
     "DateTime::Format::Strptime" => "1.73",
+    "JSON::MaybeXS" => "1.003009",
     "LWP::UserAgent" => "6.25",
     "List::Util" => "1.47",
     "Log::Any" => "1.049",
@@ -36,10 +38,11 @@ my %WriteMakefileArgs = (
     "Plack" => "1.0043",
     "Test::Exception" => "0.043",
     "Test::More" => "1.302078",
+    "Test::Pod" => "1.51",
     "Test::TCP" => "2.17",
     "Test::Warnings" => "0.026"
   },
-  "VERSION" => "0.008",
+  "VERSION" => "0.009",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -52,6 +55,7 @@ my %FallbackPrereqs = (
   "AnyEvent::HTTP" => "2.23",
   "DateTime" => "1.42",
   "DateTime::Format::Strptime" => "1.73",
+  "JSON::MaybeXS" => "1.003009",
   "LWP::UserAgent" => "6.25",
   "List::Util" => "1.47",
   "Log::Any" => "1.049",
@@ -59,6 +63,7 @@ my %FallbackPrereqs = (
   "Plack" => "1.0043",
   "Test::Exception" => "0.043",
   "Test::More" => "1.302078",
+  "Test::Pod" => "1.51",
   "Test::TCP" => "2.17",
   "Test::Warnings" => "0.026",
   "Try::Tiny" => "0.28",

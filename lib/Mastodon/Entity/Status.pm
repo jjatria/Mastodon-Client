@@ -1,9 +1,9 @@
 package Mastodon::Entity::Status;
 
-our $VERSION = '0.008';
-
 use strict;
 use warnings;
+
+our $VERSION = '0.009';
 
 use Moo;
 with 'Mastodon::Role::Entity';
@@ -17,79 +17,79 @@ use Log::Any;
 my $log = Log::Any->get_logger( category => 'Mastodon' );
 
 has account => (
-  is => 'ro', isa => Account, coerce => 1, required => 1
+  is => 'ro', isa => Account, coerce => 1, required => 1,
 );
 
 has application => (
-  is => 'ro', isa => Maybe [Application], coerce => 1
+  is => 'ro', isa => Maybe [Application], coerce => 1,
 );
 
 has content => (
-  is => 'ro', isa => Str
+  is => 'ro', isa => Str,
 );
 
 has created_at => (
-  is => 'ro', isa => DateTime, coerce => 1
+  is => 'ro', isa => DateTime, coerce => 1,
 );
 
 has favourited => (
-  is => 'ro', isa => Bool
+  is => 'ro', isa => Bool,
 );
 
 has favourites_count => (
-  is => 'ro', isa => Int, required => 1
+  is => 'ro', isa => Int, required => 1,
 );
 
 has id => (
-  is => 'ro', isa => Int
+  is => 'ro', isa => Int,
 );
 
 has in_reply_to_account_id => (
-  is => 'ro', isa => Maybe [Int]
+  is => 'ro', isa => Maybe [Int],
 );
 
 has in_reply_to_id => (
-  is => 'ro', isa => Maybe [Int]
+  is => 'ro', isa => Maybe [Int],
 );
 
 has media_attachments => (
-  is => 'ro', isa => ArrayRef [Attachment], coerce => 1
+  is => 'ro', isa => ArrayRef [Attachment], coerce => 1,
 );
 
 has mentions => (
-  is => 'ro', isa => ArrayRef [Mention], coerce => 1
+  is => 'ro', isa => ArrayRef [Mention], coerce => 1,
 );
 
 has reblog => (
-  is => 'ro', isa => Maybe [Status], coerce => 1
+  is => 'ro', isa => Maybe [Status], coerce => 1,
 );
 
 has reblogged => (
-  is => 'ro', isa => Bool
+  is => 'ro', isa => Bool,
 );
 
 has reblogs_count => (
-  is => 'ro', isa => Int
+  is => 'ro', isa => Int,
 );
 
 has sensitive => (
-  is => 'ro', isa => Bool
+  is => 'ro', isa => Bool,
 );
 
 has spoiler_text => (
-  is => 'ro', isa => Str
+  is => 'ro', isa => Str,
 );
 
 has tags => (
-  is => 'ro', isa => ArrayRef [Tag], coerce => 1
+  is => 'ro', isa => ArrayRef [Tag], coerce => 1,
 );
 
 has uri => (
-  is => 'ro', isa => Str
+  is => 'ro', isa => Str,
 );
 
 has url => (
-  is => 'ro', isa => URI, coerce => 1
+  is => 'ro', isa => URI, coerce => 1,
 );
 
 has visibility => (
@@ -114,11 +114,11 @@ foreach my $pair (
 
   my ($name, $method) = @{$pair};
   $method //= $name;
-#
+
   no strict 'refs';
-  *{ __PACKAGE__ . "::" . $name } = sub {
+  *{ __PACKAGE__ . '::' . $name } = sub {
     my $self = shift;
-    croak $log->fatal("Cannot call '$name' without client")
+    croak $log->fatal(qq{Cannot call '$name' without client})
       unless $self->_client;
     $self->_client->$method($self->id, @_);
   };

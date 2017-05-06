@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use v5.10.0;
 
-our $VERSION = '0.008';
+our $VERSION = '0.009';
 
 use Carp;
 use Mastodon::Types qw( Acct Account DateTime Image URI Instance );
@@ -62,7 +62,7 @@ has website => (
   is  => 'ro',
   isa => Str,
   lazy => 1,
-  default => '',
+  default => q{},
 );
 
 has account => (
@@ -103,9 +103,9 @@ sub authorize {
 
   state $check = compile(
     slurpy Dict [
-      access_code => Str->plus_coercions( Undef, sub {''} ),
-      username  => Str->plus_coercions( Undef, sub {''} ),
-      password  => Str->plus_coercions( Undef, sub {''} ),
+      access_code => Str->plus_coercions( Undef, sub {q{}} ),
+      username  => Str->plus_coercions( Undef, sub {q{}} ),
+      password  => Str->plus_coercions( Undef, sub {q{}} ),
     ],
   );
   my ($params) = $check->(@_);
@@ -132,8 +132,8 @@ sub authorize {
     $log->warn( $response->{error_description} );
   }
   else {
-    my $granted_scopes   = join ' ', sort split( / /, $response->{scope} );
-    my $requested_scopes = join ' ', sort @{ $self->scopes };
+    my $granted_scopes   = join q{ }, sort split( / /, $response->{scope} );
+    my $requested_scopes = join q{ }, sort @{ $self->scopes };
 
     croak $log->fatal('Granted and requested scopes do not match')
       if $granted_scopes ne $requested_scopes;
@@ -244,14 +244,14 @@ sub post_status {
   return $self->post( 'statuses', $payload);
 }
 
-# Delete a status by ID
+# Reblog a status by ID
 sub reblog_status {
   my $self = shift;
 
   state $check = compile( Int );
   my ($id) = $check->(@_);
 
-  return $self->delete( "statuses/$id/reblog" );
+  return $self->post( "statuses/$id/reblog" );
 }
 
 sub register {
@@ -277,7 +277,7 @@ sub register {
   my $response = $self->post('apps' => {
     client_name   => $self->name,
     redirect_uris => $params->{redirect_uris},
-    scopes        => join ' ', sort( @{ $params->{scopes} } ),
+    scopes        => join q{ }, sort( @{ $params->{scopes} } ),
   });
 
   $self->client_id( $response->{client_id} );
@@ -327,7 +327,7 @@ sub report {
   my ($data) = $check->(@_);
 
   croak $log->fatal('Either account_id or status_ids are required for report')
-    unless join(' ', keys(%{$data})) =~ /\b(account_id|status_ids)\b/;
+    unless join(q{ }, keys(%{$data})) =~ /\b(account_id|status_ids)\b/;
 
   return $self->post( 'reports' => $data );
 }
@@ -347,7 +347,7 @@ sub relationships {
     %{$params},
   };
 
-  return $self->get( "accounts/relationships", $params );
+  return $self->get( 'accounts/relationships', $params );
 }
 
 sub search {
@@ -362,7 +362,7 @@ sub search {
     %{$params},
   };
 
-  return $self->get( "search", $params );
+  return $self->get( 'search', $params );
 }
 
 sub search_accounts {
@@ -377,7 +377,7 @@ sub search_accounts {
     %{$params},
   };
 
-  return $self->get( "accounts/search", $params );
+  return $self->get( 'accounts/search', $params );
 }
 
 sub stream {
@@ -460,7 +460,7 @@ foreach my $pair ([
     my $method = ($base eq 'statuses') ? $endpoint . '_status' : $endpoint;
 
     no strict 'refs';
-    *{ __PACKAGE__ . "::" . $method } = sub {
+    *{ __PACKAGE__ . '::' . $method } = sub {
       my $self = shift;
       state $check = compile( Int );
       my ($id) = $check->(@_);
@@ -476,7 +476,7 @@ for my $action (qw(
   )) {
 
   no strict 'refs';
-  *{ __PACKAGE__ . "::" . $action } = sub {
+  *{ __PACKAGE__ . '::' . $action } = sub {
     my $self = shift;
     state $check = compile(Optional [HashRef]);
     my ($params) = $check->(@_);
@@ -490,7 +490,7 @@ for my $action (qw(
 # ID number defaults to authenticated account's ID
 for my $action (qw( following followers )) {
   no strict 'refs';
-  *{ __PACKAGE__ . "::" . $action } = sub {
+  *{ __PACKAGE__ . '::' . $action } = sub {
     my $self = shift;
     state $check = compile( Optional [Int|HashRef], Optional [HashRef] );
     my ($id, $params) = $check->(@_);
@@ -518,7 +518,7 @@ foreach my $pair ([
   my ($method, $endpoint) = @{$pair};
 
   no strict 'refs';
-  *{ __PACKAGE__ . "::" . $method } = sub {
+  *{ __PACKAGE__ . '::' . $method } = sub {
     my $self = shift;
     state $check = compile( Int, Optional [HashRef] );
     my ($id, $params) = $check->(@_);
@@ -830,6 +830,8 @@ The maximum number of matches. Defaults to 40.
 Depending on the value of C<coerce_entities>, returns an array reference of
 Mastodon::Entity::Account objects, or a plain array reference.
 
+This method does not require authentication.
+
 =back
 
 =head2 Apps
@@ -1101,6 +1103,8 @@ Fetches a status by ID. The ID argument is mandatory. Global GET parameters are 
 Depending on the value of C<coerce_entities>, it returns a
 Mastodon::Entity::Status object, or a plain hash reference.
 
+This method does not require authentication.
+
 =item B<get_status_context($id)>
 
 =item B<get_status_context($id, $params)>
@@ -1109,6 +1113,8 @@ Fetches the context of a status by ID. The ID argument is mandatory. Global GET 
 
 Depending on the value of C<coerce_entities>, it returns a
 Mastodon::Entity::Context object, or a plain hash reference.
+
+This method does not require authentication.
 
 =item B<get_status_card($id)>
 
@@ -1120,6 +1126,8 @@ reference.
 
 Depending on the value of C<coerce_entities>, it returns a
 Mastodon::Entity::Card object, or a plain hash reference.
+
+This method does not require authentication.
 
 =item B<get_status_reblogs($id)>
 
@@ -1135,6 +1143,8 @@ method as an additional hash reference.
 
 Depending on the value of C<coerce_entities>, it returns an array reference of
 Mastodon::Entity::Account objects, or a plain array reference.
+
+This method does not require authentication.
 
 =item B<post_status($text)>
 
@@ -1213,7 +1223,7 @@ C<#> character). This argument is mandatory.
 In addition to the global GET parameters, this method accepts the following
 parameters:
 
-Accessing the public timelines does not require authentication.
+Accessing the public and tag timelines does not require authentication.
 
 =over 4
 

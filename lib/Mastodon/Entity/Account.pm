@@ -1,9 +1,9 @@
 package Mastodon::Entity::Account;
 
-our $VERSION = '0.008';
-
 use strict;
 use warnings;
+
+our $VERSION = '0.009';
 
 use Moo;
 with 'Mastodon::Role::Entity';
@@ -14,21 +14,21 @@ use Mastodon::Types qw( Acct URI DateTime );
 use Log::Any;
 my $log = Log::Any->get_logger( category => 'Mastodon' );
 
-has acct            => ( is => 'ro', isa => Acct, required => 1 );
-has avatar          => ( is => 'ro', isa => URI, coerce => 1, required => 1 );
-has avatar_static   => ( is => 'ro', isa => URI, coerce => 1 );
-has created_at      => ( is => 'ro', isa => DateTime, coerce => 1 );
-has display_name    => ( is => 'ro', isa => Str );
-has followers_count => ( is => 'ro', isa => Int );
-has following_count => ( is => 'ro', isa => Int );
-has header          => ( is => 'ro', isa => URI, coerce => 1 );
-has header_static   => ( is => 'ro', isa => URI, coerce => 1 );
-has id              => ( is => 'ro', isa => Int );
-has locked          => ( is => 'ro', isa => Bool );
-has note            => ( is => 'ro', isa => Str );
-has statuses_count  => ( is => 'ro', isa => Int );
-has url             => ( is => 'ro', isa => URI, coerce => 1 );
-has username        => ( is => 'ro', isa => Str );
+has acct            => ( is => 'ro', isa => Acct, required => 1, );
+has avatar          => ( is => 'ro', isa => URI, coerce => 1, required => 1, );
+has avatar_static   => ( is => 'ro', isa => URI, coerce => 1, );
+has created_at      => ( is => 'ro', isa => DateTime, coerce => 1, );
+has display_name    => ( is => 'ro', isa => Str, );
+has followers_count => ( is => 'ro', isa => Int, );
+has following_count => ( is => 'ro', isa => Int, );
+has header          => ( is => 'ro', isa => URI, coerce => 1, );
+has header_static   => ( is => 'ro', isa => URI, coerce => 1, );
+has id              => ( is => 'ro', isa => Int, );
+has locked          => ( is => 'ro', isa => Bool, );
+has note            => ( is => 'ro', isa => Str, );
+has statuses_count  => ( is => 'ro', isa => Int, );
+has url             => ( is => 'ro', isa => URI, coerce => 1, );
+has username        => ( is => 'ro', isa => Str, );
 
 foreach my $pair (
     [ fetch        => 'get_account' ],
@@ -50,9 +50,9 @@ foreach my $pair (
   $method //= $name;
 
   no strict 'refs';
-  *{ __PACKAGE__ . "::" . $name } = sub {
+  *{ __PACKAGE__ . '::' . $name } = sub {
     my $self = shift;
-    croak $log->fatal("Cannot call '$name' without client")
+    croak $log->fatal(qq{Cannot call '$name' without client})
       unless $self->_client;
     $self->_client->$method($self->id, @_);
   };
@@ -60,14 +60,14 @@ foreach my $pair (
 
 sub remote_follow {
   my $self = shift;
-  croak $log->fatal("Cannot call 'remote_follow' without client")
+  croak $log->fatal(q{Cannot call 'remote_follow' without client})
     unless $self->_client;
   $self->_client->remote_follow($self->acct, @_);
 }
 
 sub report {
   my ($self, $params) = @_;
-  croak $log->fatal("Cannot call 'report' without client")
+  croak $log->fatal(q{Cannot call 'report' without client})
     unless $self->_client;
   $self->_client->report({
     %{$params},
@@ -156,6 +156,8 @@ URL to the header image
 =item B<header_static>
 
 URL to the header static image (gif)
+
+=back
 
 =head1 METHODS
 

@@ -1,18 +1,19 @@
 package Mastodon::Listener;
 
-our $VERSION = '0.008';
-
 use strict;
 use warnings;
+
+our $VERSION = '0.009';
 
 use Moo;
 extends 'AnyEvent::Emitter';
 
 use Carp;
 use Types::Standard qw( Int Str Bool );
-use Mastodon::Types qw( Instance );
+use Mastodon::Types qw( Instance to_Status to_Notification );
 use AnyEvent::HTTP;
 use Try::Tiny;
+use JSON::MaybeXS qw( decode_json );
 
 use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
@@ -88,31 +89,18 @@ sub reset {
   return $_[0];
 }
 
-sub _emitter {
-  my ($self, $event, $data) = @_;
+around emit => sub {
+  my $orig = shift;
+  my $self = shift;
 
-  return unless $event;
-  return unless $data;
-
-  require JSON;
-
-  if ($event ne 'delete') {
-    $data = try {
-      JSON::decode_json( $data );
-    }
-    catch {
-      die $log->fatalf('Error decoding: %s', $_);
-    };
-
-    if ($self->coerce_entities) {
-      use Mastodon::Types qw( to_Status to_Notification );
-      $data = to_Notification($data) if $event eq 'notification';
-      $data = to_Status($data)       if $event eq 'update';
-    }
+  my ($event, $data, @rest) = @_;
+  if ($event =~ /(update|notification)/ and $self->coerce_entities) {
+    $data = to_Notification($data) if $event eq 'notification';
+    $data = to_Status($data)       if $event eq 'update';
   }
 
-  $self->emit( $event => $data );
-}
+  $self->$orig($event, $data, @rest);
+};
 
 sub _set_connection {
   my $self = shift;
@@ -142,29 +130,45 @@ sub _set_connection {
         return;
       }
 
-      my $event_pattern = qr{(:thump|event: (\w+)).*?data: (.*)}s;
+      my $event_pattern = qr{\s*(:thump|event: (\w+)).*?data:\s*}s;
+      my $skip_pattern  = qr{\s*}s;
 
       my $parse_event;
       $parse_event = sub {
-        my ($handle, $chunk) = @_;
+        shift;
+        my $chunk = shift;
+        my $event = $2;
 
-        my ($event_line, $event, $data) = ($1, $2, $3);
-        $data =~ s/\s+$//s;
-
-        if ($event_line =~ /thump/) {
+        if (!defined $event) {
+          # Heartbeats have no data
           $self->emit( 'heartbeat' );
+          $handle->push_read( regex =>
+              $event_pattern, undef, $skip_pattern, $parse_event );
+        }
+        elsif ($event eq 'delete') {
+          # The payload for delete is a single integer
+          $handle->push_read( line => sub {
+            shift;
+            my $line = shift;
+            $self->emit( delete => $line );
+            $handle->push_read( regex =>
+              $event_pattern, undef, $skip_pattern, $parse_event );
+          });
         }
         else {
-          try   { $self->_emitter( $event => $data ) }
-          catch { $self->emit( error => $handle, 0, $_) };
+          # Other events have JSON arrays or objects
+          $handle->push_read( json => sub {
+            shift;
+            my $json = shift;
+            $self->emit( $event => $json );
+            $handle->push_read( regex =>
+              $event_pattern, undef, $skip_pattern, $parse_event );
+          });
         }
-
-        $handle->push_read( regex => $event_pattern, $parse_event );
       };
 
       # Push initial reader: look for event name
       $handle->on_read(sub {
-        my ($handle) = @_;
         $handle->push_read( regex => $event_pattern, $parse_event );
       });
 
@@ -261,6 +265,8 @@ with a hash character (C<#>).
 
 The full streaming URL to use. By default, it is constructed from the values in
 the B<instance>, B<api_version>, and B<stream> attributes.
+
+=back
 
 =head1 EVENTS
 

@@ -256,6 +256,8 @@ documentation.
     Depending on the value of `coerce_entities`, returns an array reference of
     Mastodon::Entity::Account objects, or a plain array reference.
 
+    This method does not require authentication.
+
 ## Apps
 
 - **register()**
@@ -457,6 +459,8 @@ documentation.
     Depending on the value of `coerce_entities`, it returns a
     Mastodon::Entity::Status object, or a plain hash reference.
 
+    This method does not require authentication.
+
 - **get\_status\_context($id)**
 - **get\_status\_context($id, $params)**
 
@@ -464,6 +468,8 @@ documentation.
 
     Depending on the value of `coerce_entities`, it returns a
     Mastodon::Entity::Context object, or a plain hash reference.
+
+    This method does not require authentication.
 
 - **get\_status\_card($id)**
 - **get\_status\_card($id, $params)**
@@ -474,6 +480,8 @@ documentation.
 
     Depending on the value of `coerce_entities`, it returns a
     Mastodon::Entity::Card object, or a plain hash reference.
+
+    This method does not require authentication.
 
 - **get\_status\_reblogs($id)**
 - **get\_status\_reblogs($id, $params)**
@@ -486,6 +494,8 @@ documentation.
 
     Depending on the value of `coerce_entities`, it returns an array reference of
     Mastodon::Entity::Account objects, or a plain array reference.
+
+    This method does not require authentication.
 
 - **post\_status($text)**
 - **post\_status($text, $params)**
@@ -551,7 +561,7 @@ documentation.
     In addition to the global GET parameters, this method accepts the following
     parameters:
 
-    Accessing the public timelines does not require authentication.
+    Accessing the public and tag timelines does not require authentication.
 
     - **local**
 

@@ -2,6 +2,17 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+  * New:
+    * Added tidyall tests
+  * Changes:
+    * Switch to JSON::MaybeXS
+    * Use Class::Load to programmatically load classes
+    * Improved robustness of stream parsing
+    * Simplified method to perform requests
+  * Fixes:
+    * Fixed syntax errors in POD
+    * Fixed a missing import in Application entities
+
 0.008     2017-04-22 02:45:33+01:00 Europe/London
 
   * New:

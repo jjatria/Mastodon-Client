@@ -12,6 +12,7 @@ Revision history for Mastodon::Client
   * Fixes:
     * Fixed syntax errors in POD
     * Fixed a missing import in Application entities
+    * Reblog status method no longer calls DELETE
 
 0.008     2017-04-22 02:45:33+01:00 Europe/London
 

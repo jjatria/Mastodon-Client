@@ -244,14 +244,14 @@ sub post_status {
   return $self->post( 'statuses', $payload);
 }
 
-# Delete a status by ID
+# Reblog a status by ID
 sub reblog_status {
   my $self = shift;
 
   state $check = compile( Int );
   my ($id) = $check->(@_);
 
-  return $self->delete( "statuses/$id/reblog" );
+  return $self->post( "statuses/$id/reblog" );
 }
 
 sub register {

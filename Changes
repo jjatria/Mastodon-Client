@@ -2,6 +2,8 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+0.010     2017-05-08 00:15:59+01:00 Europe/London
+
   * Fixes:
     * Added AutoPrereq plugin for automatic dependency detection
 

@@ -167,7 +167,7 @@ sub _request {
 }
 
 sub _prepare_data {
-  my ($self, $url, $data) = @_;
+  my ($self, $data) = @_;
   $data //= {};
 
   foreach my $key (keys %{$data}) {

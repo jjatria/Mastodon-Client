@@ -567,15 +567,17 @@ Mastodon::Client - Talk to a Mastodon server
 
 =head1 DESCRIPTION
 
-Mastodon::Client lets you talk to a Mastodon server.
+Mastodon::Client lets you talk to a Mastodon server to obtain authentication
+credentials, read posts from timelines in both static or streaming mode, and
+perform all the other operations exposed by the Mastodon API.
 
-This distribution is still in development, and the interface might
-change in the future. But changes should mostly be to add convenience
-methods for the more common tasks.
+Most of these are available through the convenience methods listed below, which
+validate input parameters and are likely to provide more meaningful feedback in
+case of errors.
 
-The use of the request methods (B<post>, B<get>, etc) is not likely to
-change, and as long as you know the endpoints you are reaching, this
-should be usable right now.
+Alternatively, this distribution can be used via the low-level request methods
+(B<post>, B<get>, etc), which allow direct access to the API endpoints. All
+other methods call one of these at some point.
 
 =head1 ATTRIBUTES
 

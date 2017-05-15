@@ -97,7 +97,7 @@ sub authorize {
   }
 
   if ( $self->access_token ) {
-    $log->warn('Client is already authorised');
+    $log->warn('Client is already authorized');
     return $self;
   }
 

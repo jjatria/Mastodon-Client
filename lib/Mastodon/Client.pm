@@ -1300,8 +1300,7 @@ the particular tag.
 For more details on how to use this object, see the documentation for
 L<Mastodon::Listener>.
 
-Accessing streaming public timeline will not require authentication (but as
-of this writing still does).
+Accessing streaming public timeline does not require authentication.
 
 =back
 

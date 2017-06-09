@@ -2,6 +2,8 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+0.012     2017-06-09 12:58:08+01:00 Europe/London
+
   * Changes:
     * Improved documentation, including a section with details about
       the OAuth2 process for obtaining IDs, secrets, and tokens

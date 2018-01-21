@@ -2,6 +2,12 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+  * Changes:
+    * [internal] Switched from AnyEvent to IO::Async.
+  * Fixes:
+    * Fixed a typo in the synopsis that could cause a server error
+      when run (++Florian Obser).
+
 0.012     2017-06-09 12:58:08+01:00 Europe/London
 
   * Changes:

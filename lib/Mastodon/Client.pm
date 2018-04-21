@@ -126,6 +126,8 @@ sub authorize {
     $data->{password}   = $params->{password};
   }
 
+  $data->{scope} = join q{ }, sort @{ $self->scopes };
+
   my $response = $self->post( 'oauth/token' => $data );
 
   if ( defined $response->{error} ) {
@@ -282,6 +284,7 @@ sub register {
 
   $self->client_id( $response->{client_id} );
   $self->client_secret( $response->{client_secret} );
+  $self->scopes( $params->{scopes} );
 
   return $self;
 }
@@ -706,8 +709,8 @@ The client's website. Defaults to the value of the C<website> attribute.
 
 =back
 
-When successful, sets the C<client_secret> and C<client_id> attributes of
-the Mastodon::Client object and returns the modified object.
+When successful, sets the C<client_secret>, C<scopes>, and C<client_id>
+attributes of the Mastodon::Client object and returns the modified object.
 
 This should be called B<once> per client and its contents cached locally.
 

@@ -686,10 +686,10 @@ The methods facilitating this process are detailed below:
 
 =item B<register()>
 
-=item B<register($data)>
+=item B<register(%data)>
 
 Obtain a client secret and ID from a given mastodon instance. Takes a single
-hash reference as an argument, with the following possible keys:
+hash as an argument, with the following possible keys:
 
 =over 4
 

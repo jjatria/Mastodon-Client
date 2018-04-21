@@ -303,7 +303,7 @@ sub statuses {
   return $self->get( "accounts/$id/statuses", $params );
 }
 
-# Reject follow requsts by account ID
+# Reject follow requests by account ID
 sub reject_follow {
   my $self = shift;
   state $check = compile( Int );

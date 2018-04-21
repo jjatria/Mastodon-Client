@@ -125,6 +125,8 @@ sub authorize {
     $data->{username}   = $params->{username};
     $data->{password}   = $params->{password};
   }
+  $data->{scope}=join q{ }, sort @{ $self->{scopes} };
+
 
   $data->{scope} = join q{ }, sort @{ $self->scopes };
 
@@ -275,6 +277,7 @@ sub register {
     ]
   );
   my ($params) = $check->(@_);
+  $self->{scopes}=$params->{scopes};
 
   my $response = $self->post('apps' => {
     client_name   => $self->name,

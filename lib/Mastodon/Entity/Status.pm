@@ -32,6 +32,10 @@ has created_at => (
   is => 'ro', isa => DateTime, coerce => 1,
 );
 
+has emojis => (
+  is => 'ro', isa => ArrayRef,
+);
+
 has favourited => (
   is => 'ro', isa => Bool,
 );

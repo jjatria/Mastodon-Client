@@ -96,51 +96,54 @@ sub start {
         my $response = shift;
         $on_error->( 1, $response->message, $response )
           unless $response->is_success;
-
-        return sub {
-          my $chunk = shift;
-          push @buffer, split /\n/, $chunk;
-
-          while (my $line = shift @buffer) {
-            if ($line =~ /^(:thump|event: (\w+))$/) {
-              my $event = $2;
-
-              if (!defined $event) {
-                # Heartbeats have no data
-                $self->emit( 'heartbeat' );
-                next;
-              }
-              else {
-                $current_event = $event;
-              }
-            }
-
-            return unless $current_event;
-            return unless @buffer;
-
-            my $data = shift @buffer;
-            $data =~ s/^data:\s+//;
-
-            if ($current_event eq 'delete') {
-              # The payload for delete is a single integer
-              $self->emit( delete => $data );
-            }
-            else {
-              # Other events have JSON arrays or objects
-              try {
-                my $payload = decode_json $data;
-                $self->emit( $current_event => $payload );
-              }
-              catch {
-                $self->emit( error => 0,
-                  "Error decoding JSON payload: $_", $data
-                );
-              };
-            }
-
-            $current_event = undef;
-          }
-        }
+          return sub {
+				  my $chunk = shift;
+				  #print "[chunk: $chunk]\n";
+				  path($RAW_FILE)->append(time().": ".$chunk);
+				  if($chunk=~/\n$/m) #ends with \n. Command finished
+				  {
+					  $chunk=$buffer.$chunk;
+					  if ($chunk =~ /^(:thump|event: (\w+))$/) {
+						  my $line=$1;
+						  my $event = $2;
+						  if (!defined $event) {
+							  # Heartbeats have no data
+							  $self->emit( 'heartbeat' );
+							  return;
+						  }
+						  else {
+							  $current_event = $event;
+						  }
+						  $chunk=~s/$line\n//;
+					  }
+					  if($chunk=~/^data:/)
+					  {
+						  $chunk =~ s/^data:\s+//;
+						  if ($current_event eq 'delete') {
+							  # The payload for delete is a single integer
+							  $self->emit( delete => $chunk );
+						  }
+						  else {
+                try {
+                  my $payload = decode_json $chunk;
+                  $self->emit( $current_event => $payload );
+                }
+                catch {
+                  $self->emit( error => 0,
+                    "Error decoding JSON payload: $_", $chunk
+                  );
+                };
+						  }
+						  $current_event = undef;
+					  }
+					  $buffer='';
+				  }
+				  else
+				  {
+					  $buffer.=$chunk;
+				  }
+				  return;
+			  }
       },
     )
   );

@@ -81,7 +81,7 @@ sub start {
   my $self = shift;
 
   my $current_event;
-  my @buffer;
+  my $buffer;
 
   my $on_error = sub { $self->emit( error => shift, shift, \@_ ) };
 
@@ -128,7 +128,7 @@ sub start {
                 }
                 catch {
                   $self->emit( error => 0,
-                    "Error decoding JSON payload: $_", $data
+                    "Error decoding JSON payload: $_", $chunk
                   );
                 };
               }

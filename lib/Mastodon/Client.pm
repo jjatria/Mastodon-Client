@@ -12,7 +12,7 @@ use Mastodon::Types qw( Acct Account DateTime Image URI Instance );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
-  qw( Int Str Optional Bool Maybe Undef HashRef ArrayRef Dict slurpy );
+  qw( Int Str Optional Bool Maybe Undef HashRef ArrayRef Dict Tuple StrictNum slurpy );
 use Types::Path::Tiny qw( File );
 
 use Log::Any;
@@ -441,12 +441,25 @@ sub upload_media {
   my $self = shift;
 
   state $check = compile(
-    File->plus_coercions( Str, sub { Path::Tiny::path($_) } )
+    File->plus_coercions( Str, sub { Path::Tiny::path($_) } ),
+    Optional [ Dict[
+      description => Optional[Str],
+      focus => Optional[Tuple[StrictNum, StrictNum]],
+    ]]
   );
-  my ($file) = $check->(@_);
+  my ($file, $params) = $check->(@_);
+  $params //= {};
 
+  if (exists $params->{focus}) {
+    my ($x,$y) = @{$params->{focus}};
+    if ($x >= -1 && $x <= 1 && $y >= -1 && $y <= 1) {
+      $params->{focus} = "$x,$y";
+    } else {
+      delete $params->{focus};
+    }
+  }
   return $self->post( 'media' =>
-    { file => [ $file, undef ] },
+    { file => [ $file, undef ], %$params },
     headers => { Content_Type => 'form-data' },
   );
 }
@@ -1010,8 +1023,30 @@ This method does not require authentication.
 
 =item B<upload_media($file)>
 
-Upload a file as an attachment. Takes a single argument with the name of a
-local file to encode and upload. The argument is mandatory.
+=item B<upload_media($file, $params)>
+
+Upload a file as an attachment. Takes a mandatory argument with the name of a
+local file to encode and upload, and an optional hash reference with the
+following additional parameters:
+
+=over 4
+
+=item B<description>
+
+A plain-text description of the media, for accessibility, as a string.
+
+=item B<focus>
+
+An array reference of two floating point values, to be used as
+the x and y focus values. These inform clients which point in
+the image is the most important one to show in a cropped view.
+
+The value of a coordinate is a real number between -1 and +1,
+where 0 is the center. x:-1 indicates the left edge of the
+image, x:1 the right edge. For the y axis, y:1 is the top edge
+and y:-1 is the bottom.
+
+=back
 
 Depending on the value of C<coerce_entities>, returns an
 Mastodon::Entity::Attachment object, or a plain hash reference.

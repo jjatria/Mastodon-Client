@@ -389,9 +389,26 @@ documentation.
 ## Media
 
 - **upload\_media($file)**
+- **upload\_media($file, $params)**
 
-    Upload a file as an attachment. Takes a single argument with the name of a
-    local file to encode and upload. The argument is mandatory.
+    Upload a file as an attachment. Takes a mandatory argument with the name of a
+    local file to encode and upload, and an optional hash reference with the
+    following additional parameters:
+
+    - **description**
+
+        A plain-text description of the media, for accessibility, as a string.
+
+    - **focus**
+
+        An array reference of two floating point values, to be used as
+        the x and y focus values. These inform clients which point in
+        the image is the most important one to show in a cropped view.
+
+        The value of a coordinate is a real number between -1 and +1,
+        where 0 is the center. x:-1 indicates the left edge of the
+        image, x:1 the right edge. For the y axis, y:1 is the top edge
+        and y:-1 is the bottom.
 
     Depending on the value of `coerce_entities`, returns an
     Mastodon::Entity::Attachment object, or a plain hash reference.

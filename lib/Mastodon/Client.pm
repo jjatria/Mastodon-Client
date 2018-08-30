@@ -84,8 +84,7 @@ has scopes => (
 );
 
 after access_token => sub {
-  my $self = shift;
-  $self->authorized(1);
+  shift->authorized(1);
 };
 
 sub authorize {

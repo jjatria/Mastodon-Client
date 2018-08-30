@@ -32,6 +32,8 @@ coerce 'URI', from Str, via {
 
 class_type 'DateTime', { class => 'DateTime' };
 
+class_type 'HTTPResponse', { class => 'HTTP::Response' };
+
 coerce 'DateTime',
   from Num,
     via { 'DateTime'->from_epoch( epoch => $_ ) }

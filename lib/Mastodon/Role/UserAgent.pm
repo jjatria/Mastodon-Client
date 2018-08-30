@@ -13,8 +13,8 @@ my $log = Log::Any->get_logger( category => 'Mastodon' );
 
 use URI::QueryParam;
 use List::Util qw( any );
-use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
-use Mastodon::Types qw( URI Instance UserAgent to_Entity );
+use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict Maybe slurpy );
+use Mastodon::Types qw( URI Instance UserAgent to_Entity HTTPResponse );
 use Type::Params qw( compile );
 use Carp;
 
@@ -45,6 +45,12 @@ has user_agent => (
     require LWP::UserAgent;
     LWP::UserAgent->new;
   },
+);
+
+has latest_response => (
+    is => 'ro',
+    isa => Maybe[HTTPResponse],
+    init_args => undef,
 );
 
 sub authorization_url {
@@ -136,6 +142,9 @@ sub _request {
 
     use JSON::MaybeXS qw( decode_json );
     use Encode qw( encode );
+
+    # We want to be able to set it, but do not want the user to do so
+    $self->{latest_response} = $response;
 
     die $response->status_line unless $response->is_success;
 

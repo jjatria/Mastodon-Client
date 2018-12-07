@@ -76,7 +76,7 @@ has account => (
 );
 
 has scopes => (
-  is      => 'ro',
+  is      => 'rw',
   isa     => ArrayRef->plus_coercions( Str, sub { [ split / /, $_ ] } ),
   lazy    => 1,
   default => sub { [ 'read' ] },

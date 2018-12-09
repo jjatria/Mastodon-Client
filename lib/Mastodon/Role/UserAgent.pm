@@ -15,7 +15,7 @@ use URI::QueryParam;
 use List::Util qw( any );
 use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
 use Mastodon::Types qw( URI Instance UserAgent to_Entity );
-use Type::Params qw( compile );
+use Type::Params qw( compile validate );
 use Carp;
 
 has instance => (
@@ -56,12 +56,14 @@ sub authorization_url {
     );
   }
 
-  state $check = compile( slurpy Dict[
-    instance => Instance->plus_coercions( Undef, sub { $self->instance } ),
-  ]);
+  # Using validate rather than compile because the defaults are dynamic
+  my ($params) = validate(
+    \@_,
+    slurpy Dict[
+      instance => Instance->plus_coercions( Undef, sub { $self->instance } ),
+    ]
+  );
 
-  use URI::QueryParam;
-  my ($params) = $check->(@_);
   my $uri = URI->new('/oauth/authorize')->abs($params->{instance}->uri);
   $uri->query_param(redirect_uri => $self->redirect_uri);
   $uri->query_param(response_type => 'code');
@@ -78,7 +80,9 @@ sub delete { shift->_request( delete => shift, params => shift, @_ ) }
 sub _build_url {
   my $self = shift;
 
-  state $check = compile(
+  # Using validate rather than compile because the defaults are dynamic
+  my ($url) = validate(
+    \@_,
     URI->plus_coercions(
       Str, sub {
         s{(?:^/|/$)}{}g;
@@ -86,10 +90,9 @@ sub _build_url {
         my $api = (m{^/?oauth/}) ? q{} : 'api/v' . $self->api_version . '/';
         URI->new(join '/', $self->instance->uri, $api . $_);
       },
-    )
+    ),
   );
 
-  my ($url) = $check->(@_);
   return $url;
 }
 

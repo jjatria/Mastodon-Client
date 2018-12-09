@@ -14,6 +14,7 @@ use Types::Common::String qw( NonEmptyStr );
 use Types::Standard
   qw( Int Str Optional Bool Maybe Undef HashRef ArrayRef Dict Tuple StrictNum slurpy );
 use Types::Path::Tiny qw( File );
+use Type::Params qw( compile validate );
 
 use Log::Any;
 my $log = Log::Any->get_logger(category => 'Mastodon');
@@ -263,7 +264,9 @@ sub register {
     return $self;
   }
 
-  state $check = compile(
+  # Using validate rather than compile because the defaults are dynamic
+  my ($params) = validate(
+    \@_,
     slurpy Dict [
       instance => Instance->plus_coercions( Undef, sub { $self->instance } ),
       redirect_uris =>
@@ -273,7 +276,6 @@ sub register {
       website => Str->plus_coercions( Undef, sub { $self->website } ),
     ]
   );
-  my ($params) = $check->(@_);
 
   my $response = $self->post('apps' => {
     client_name   => $self->name,

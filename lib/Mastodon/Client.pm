@@ -105,9 +105,9 @@ sub authorize {
 
   state $check = compile(
     slurpy Dict [
-      access_code => Str->plus_coercions( Undef, sub {q{}} ),
-      username  => Str->plus_coercions( Undef, sub {q{}} ),
-      password  => Str->plus_coercions( Undef, sub {q{}} ),
+      access_code => Optional [Str],
+      username    => Optional [Str],
+      password    => Optional [Str],
     ],
   );
   my ($params) = $check->(@_);
@@ -124,8 +124,8 @@ sub authorize {
   }
   else {
     $data->{grant_type} = 'password';
-    $data->{username}   = $params->{username};
-    $data->{password}   = $params->{password};
+    $data->{username}   = $params->{username} // '';
+    $data->{password}   = $params->{password} // '';
   }
 
   $data->{scope} = join q{ }, sort @{ $self->scopes };

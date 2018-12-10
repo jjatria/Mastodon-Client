@@ -11,8 +11,10 @@ use Carp;
 use Mastodon::Types qw( Acct Account DateTime Image URI Instance );
 use Moo;
 use Types::Common::String qw( NonEmptyStr );
-use Types::Standard
-  qw( Int Str Optional Bool Maybe Undef HashRef ArrayRef Dict Tuple StrictNum slurpy );
+use Types::Standard qw(
+    Any Int Str Bool Undef HashRef ArrayRef Dict Tuple StrictNum
+    slurpy Maybe Optional
+);
 use Types::Path::Tiny qw( File );
 use Type::Params qw( compile validate );
 
@@ -264,28 +266,35 @@ sub register {
     return $self;
   }
 
-  # Using validate rather than compile because the defaults are dynamic
-  my ($params) = validate(
-    \@_,
+  state $check = compile(
     slurpy Dict [
-      instance => Instance->plus_coercions( Undef, sub { $self->instance } ),
-      redirect_uris =>
-        Str->plus_coercions( Undef, sub { $self->redirect_uri } ),
-      scopes =>
-        ArrayRef->plus_coercions( Undef, sub { $self->scopes } ),
-      website => Str->plus_coercions( Undef, sub { $self->website } ),
+      redirect_uris => Optional [ Str ],
+      scopes        => Optional [ ArrayRef [ Str ] ],
+      website       => Optional [ Str ],
+      instance      => Optional [ Any ],
     ]
   );
+  my ($params) = $check->(@_);
 
-  my $response = $self->post('apps' => {
-    client_name   => $self->name,
-    redirect_uris => $params->{redirect_uris},
-    scopes        => join q{ }, sort( @{ $params->{scopes} } ),
-  });
+  # We used to accept instance by mistake, we want to turn it off
+  warn 'Deprecation notice: do not pass an instance parameter to register'
+    if $params->{instance};
+
+  my $website = $params->{website} // $self->website;
+  my $scopes  = $params->{scopes}  // $self->scopes;
+
+  my $response = $self->post(
+    'apps' => {
+      client_name   => $self->name,
+      redirect_uris => $params->{redirect_uris} // $self->redirect_uri,
+      scopes        => join( ' ', sort @{$scopes} ),
+      $website ? ( website => $website ) : (),
+    },
+  );
 
   $self->client_id( $response->{client_id} );
   $self->client_secret( $response->{client_secret} );
-  $self->scopes( $params->{scopes} );
+  $self->scopes($scopes);
 
   return $self;
 }

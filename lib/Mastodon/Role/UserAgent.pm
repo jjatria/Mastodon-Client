@@ -13,9 +13,9 @@ my $log = Log::Any->get_logger( category => 'Mastodon' );
 
 use URI::QueryParam;
 use List::Util qw( any );
-use Types::Standard qw( Undef Str Num ArrayRef HashRef Dict slurpy );
+use Types::Standard qw( Optional Undef Str Num ArrayRef HashRef Dict slurpy );
 use Mastodon::Types qw( URI Instance UserAgent to_Entity );
-use Type::Params qw( compile validate );
+use Type::Params qw( compile );
 use Carp;
 
 has instance => (
@@ -56,19 +56,17 @@ sub authorization_url {
     );
   }
 
-  # Using validate rather than compile because the defaults are dynamic
-  my ($params) = validate(
-    \@_,
-    slurpy Dict[
-      instance => Instance->plus_coercions( Undef, sub { $self->instance } ),
-    ]
-  );
+  state $check = compile( slurpy Dict [ access_code => Optional [Instance] ] );
+  my ($params) = $check->(@_);
+
+  $params->{instance} //= $self->instance;
 
   my $uri = URI->new('/oauth/authorize')->abs($params->{instance}->uri);
   $uri->query_param(redirect_uri => $self->redirect_uri);
   $uri->query_param(response_type => 'code');
   $uri->query_param(client_id => $self->client_id);
   $uri->query_param(scope => join q{ }, sort(@{$self->scopes}));
+
   return $uri;
 }
 
@@ -76,25 +74,6 @@ sub post   { shift->_request( post   => shift, data   => shift, @_ ) }
 sub patch  { shift->_request( patch  => shift, data   => shift, @_ ) }
 sub get    { shift->_request( get    => shift, params => shift, @_ ) }
 sub delete { shift->_request( delete => shift, params => shift, @_ ) }
-
-sub _build_url {
-  my $self = shift;
-
-  # Using validate rather than compile because the defaults are dynamic
-  my ($url) = validate(
-    \@_,
-    URI->plus_coercions(
-      Str, sub {
-        s{(?:^/|/$)}{}g;
-        require URI;
-        my $api = (m{^/?oauth/}) ? q{} : 'api/v' . $self->api_version . '/';
-        URI->new(join '/', $self->instance->uri, $api . $_);
-      },
-    ),
-  );
-
-  return $url;
-}
 
 sub _request {
   my $self   = shift;
@@ -191,7 +170,12 @@ sub _prepare_params {
   my ($self, $url, $params) = @_;
   $params //= {};
 
-  $url = $self->_build_url($url) unless ref $url eq 'URI';
+  croak 'Cannot make a request without a URL' unless $url;
+
+  unless (ref $url eq 'URI') {
+    my $base = $url =~ m{^/oauth/} ? '/' : '/api/v' . $self->api_version . '/';
+    $url = URI->new( $self->instance->uri . $base . $url );
+  }
 
   # Adjust query param format to be Ruby-compliant
   foreach my $key (keys %{$params}) {

@@ -31,16 +31,17 @@ has coerce_entities => (
 );
 
 has access_token => (
-  is   => 'rw',
-  isa  => NonEmptyStr,
-  lazy => 1,
+  is        => 'rw',
+  isa       => NonEmptyStr,
+  lazy      => 1,
+  predicate => '_has_access_token',
 );
 
 has authorized => (
   is      => 'rw',
   isa     => DateTime|Bool,
   lazy    => 1,
-  default => sub { defined $_[0]->access_token },
+  default => sub { $_[0]->_has_access_token },
   coerce  => 1,
 );
 
@@ -87,7 +88,7 @@ has scopes => (
 );
 
 after access_token => sub {
-  shift->authorized(1);
+  $_[0]->authorized(1) unless $_[0]->authorized;
 };
 
 sub authorize {

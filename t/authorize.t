@@ -131,8 +131,7 @@ describe 'authorize' => sub {
 
     is $client->authorize, object {
       call access_token => 'a token';
-      # This is an error; should set DateTime
-      call authorized   => 1;
+      call authorized   => '2018-12-16T12:20:40';
       etc;
     }, 'Method sets attributes';
 

@@ -2,6 +2,8 @@ Revision history for Mastodon::Client
 
 {{$NEXT}}
 
+0.016     2019-10-13 12:23:24+01:00 Europe/London
+
   * New:
     * A new 'latest_response' accessor makes it possible to retrieve the
       most recent response obtained from the server, to assist in error

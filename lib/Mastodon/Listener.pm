@@ -3,7 +3,7 @@ package Mastodon::Listener;
 use strict;
 use warnings;
 
-our $VERSION = '0';
+our $VERSION = '0.017';
 
 use Moo;
 with 'Role::EventEmitter';

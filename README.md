@@ -44,6 +44,13 @@ Alternatively, this distribution can be used via the low-level request methods
 (**post**, **get**, etc), which allow direct access to the API endpoints. All
 other methods call one of these at some point.
 
+# VERSION NOTICE
+
+This distribution currently **only supports version 1 of the Mastodon API**.
+
+Help implementing support for any missing features in version 1, and for the
+new features in version 2, would be greatfully appreciated.
+
 # ATTRIBUTES
 
 - **instance**

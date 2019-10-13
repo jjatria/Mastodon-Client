@@ -42,8 +42,8 @@ has user_agent => (
   is => 'ro',
   isa => UserAgent,
   default => sub {
-    require LWP::UserAgent;
-    LWP::UserAgent->new;
+    require HTTP::Thin;
+    HTTP::Thin->new;
   },
 );
 

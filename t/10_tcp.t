@@ -1,6 +1,5 @@
 use Test2::V0;
 use Test::TCP;
-use LWP::UserAgent;
 use Mastodon::Client;
 use Try::Tiny;
 

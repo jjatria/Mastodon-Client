@@ -197,6 +197,25 @@ The methods facilitating this process are detailed below:
     When successful, the method automatically sets the client's **authorized**
     attribute to a true value and caches the **access\_token** for all future calls.
 
+## Error handling
+
+Methods that make requests to the server will `die` whenever an error is
+encountered, or the data that was received from the server is not what is
+expected. The error string will, when possible, come from the response's
+status line, but this will likely not be enough to fully diagnose what
+went wrong.
+
+- **latest\_response**
+
+    To make this easier, the client will cache the server's response after each
+    request has been made, and expose it through the `latest_response` accessor.
+
+    Note that, as its name implies, _this will only store the most recent
+    response_.
+
+    If called before any request has been made, it will return an undefined
+    value.
+
 The remaining methods listed here follow the order of those in the official API
 documentation.
 

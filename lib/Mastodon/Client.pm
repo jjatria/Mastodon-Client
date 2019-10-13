@@ -606,6 +606,13 @@ Alternatively, this distribution can be used via the low-level request methods
 (B<post>, B<get>, etc), which allow direct access to the API endpoints. All
 other methods call one of these at some point.
 
+=head1 VERSION NOTICE
+
+This distribution currently B<only supports version 1 of the Mastodon API>.
+
+Help implementing support for any missing features in version 1, and for the
+new features in version 2, would be greatfully appreciated.
+
 =head1 ATTRIBUTES
 
 =over 4

@@ -58,6 +58,8 @@ $client->instance->{uri} = $url;
   isa_ok $response, 'Mastodon::Entity::Account';
   like $response->username, qr/a/i, 'Fetches self';
 
+  isa_ok $client->latest_response, 'HTTP::Response';
+
   like $client->account, { acct => $response->acct }, 'Cache self account';
 
   ok $response = $client->get_account(2);

@@ -779,6 +779,29 @@ attribute to a true value and caches the B<access_token> for all future calls.
 
 =back
 
+=head2 Error handling
+
+Methods that make requests to the server will C<die> whenever an error is
+encountered, or the data that was received from the server is not what is
+expected. The error string will, when possible, come from the response's
+status line, but this will likely not be enough to fully diagnose what
+went wrong.
+
+=over 4
+
+=item B<latest_response>
+
+To make this easier, the client will cache the server's response after each
+request has been made, and expose it through the C<latest_response> accessor.
+
+Note that, as its name implies, I<this will only store the most recent
+response>.
+
+If called before any request has been made, it will return an undefined
+value.
+
+=back
+
 The remaining methods listed here follow the order of those in the official API
 documentation.
 

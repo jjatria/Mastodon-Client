@@ -634,7 +634,7 @@ flow. Defaults to C<urn:ietf:wg:oauth:2.0:oob> (meaning no redirection).
 =item B<user_agent>
 
 The user agent to use for the requests. Defaults to an instance of
-L<LWP::UserAgent>. It is expected to have a C<request> method that
+L<HTTP::Thin>. It is expected to have a C<request> method that
 accepts L<HTTP::Request> objects.
 
 =item B<coerce_entities>

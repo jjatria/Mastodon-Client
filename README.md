@@ -70,8 +70,8 @@ new features in version 2, would be greatfully appreciated.
 - **user\_agent**
 
     The user agent to use for the requests. Defaults to an instance of
-    [LWP::UserAgent](https://metacpan.org/pod/LWP::UserAgent). It is expected to have a `request` method that accepts
-    instances of [HTTP::Request](https://metacpan.org/pod/HTTP::Request) objects.
+    [HTTP::Thin](https://metacpan.org/pod/HTTP::Thin). It is expected to have a `request` method that
+    accepts [HTTP::Request](https://metacpan.org/pod/HTTP::Request) objects.
 
 - **coerce\_entities**
 

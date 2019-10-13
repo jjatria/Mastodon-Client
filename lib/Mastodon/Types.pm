@@ -65,7 +65,7 @@ coerce 'Image',
     require MIME::Base64;
     my $type = lc Image::Info::image_type( $file->stringify )->{file_type};
     my $img = "data:image/$type;base64,"
-      . MIME::Base64::encode_base64( $file->slurp );
+      . MIME::Base64::encode_base64( $file->slurp_raw );
     return $img;
   };
 
